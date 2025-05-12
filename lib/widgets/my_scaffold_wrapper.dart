@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import './my_drawer.dart'; // 導入你的 MyDrawer
+import './my_drawer.dart';
 
+//螢幕之間共用的導覽列與抽屜
 class MyScaffoldWrapper extends StatelessWidget {
   final String title; // 畫面的標題
   final Widget body; // 畫面的主要內容
@@ -18,7 +19,7 @@ class MyScaffoldWrapper extends StatelessWidget {
         // actions: <Widget>[],
       ),
       drawer: MyDrawer(),
-      body: body, // 將傳入的 body Widget 放在 Scaffold 的 body 中
+      body: body,
     );
   }
 }

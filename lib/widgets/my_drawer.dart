@@ -12,16 +12,13 @@ class MyDrawer extends StatelessWidget {
 
     return Drawer(
       child: ListView(
-        // 修改 padding 屬性，在頂部添加狀態列高度的內距
+        // 修改 padding 屬性，在頂部添加狀態列高度的內距，不然會頂到最上面的狀態列
         padding: EdgeInsets.only(top: mediaQuery.padding.top), // 只在頂部添加內距
         children: <Widget>[
           // 各個導航項目
           ListTile(
             leading: Icon(Icons.home),
-            title: Text(
-              '首頁',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            title: Text('首頁', style: Theme.of(context).textTheme.titleMedium),
             onTap: () {
               GoRouter.of(context).go(homeRoute);
               Navigator.pop(context);
@@ -29,10 +26,7 @@ class MyDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.favorite),
-            title: Text(
-              favoriteTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            title: Text(favoriteTitle, style: Theme.of(context).textTheme.titleMedium),
             onTap: () {
               GoRouter.of(context).go(favoriteRoute);
               Navigator.pop(context);
@@ -40,10 +34,7 @@ class MyDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.settings),
-            title: Text(
-              settingsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            title: Text(settingsTitle, style: Theme.of(context).textTheme.titleMedium),
             onTap: () {
               GoRouter.of(context).go(settingsRoute);
               Navigator.pop(context);

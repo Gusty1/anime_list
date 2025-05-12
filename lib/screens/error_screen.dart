@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants.dart';
 
-// 這是一個簡單的 ErrorScreen Widget，用於在 errorBuilder 中顯示錯誤資訊
+// 錯誤螢幕，其實我也只設定錯誤路由會進來而已，手機應該是不會進來，總之就是先定義一下
 class ErrorScreen extends StatelessWidget {
   // 接收一個 dynamic 類型的 error 參數
   // dynamic 是因為錯誤的類型可能有多種 (Exception, Error, DioException 等)
@@ -16,23 +16,16 @@ class ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 你可以在這裡設計更複雜的錯誤畫面 UI
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('發生錯誤'),
-        backgroundColor: Colors.redAccent, // 通常錯誤畫面使用醒目的顏色
-      ),
+      appBar: AppBar(title: const Text('發生錯誤'), backgroundColor: Colors.redAccent),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 60,
-              ),
+              Image.asset('assets/errorRoute.gif'), //不知道放什麼，給他一張51121迷因圖
+              Icon(Icons.error_outline, color: Colors.red, size: 60),
               const SizedBox(height: 20),
               Text(
                 '應用程式發生錯誤:',

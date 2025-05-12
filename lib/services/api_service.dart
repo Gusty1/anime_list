@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
-import '../network/dio_client.dart';
-import '../models/hitokoto.dart'; // 導入 Hitokoto Model
-import 'dart:developer' as developer; // AI說:雖然用了 logger，但保留 developer 導入以防萬一或作為對比
+import '../models/hitokoto.dart';
+import '../utils/logger.dart';
 import '../constants.dart';
+// import 'dart:developer' as developer; // AI說:雖然用了 logger，但保留 developer 導入以防萬一或作為對比
 
+// api相關服務
 class ApiService {
   final Dio _dio; // ApiService 依賴於 Dio 實例
 

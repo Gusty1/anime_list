@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart'; // 導入 flutter_spinkit 套件
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 // 一個獨立的載入指示器 Widget
 class AppLoadingIndicator extends StatelessWidget {
@@ -14,20 +14,16 @@ class AppLoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 Column 來垂直排列載入動畫和提示文字
     return Center(
-      // 通常載入指示器會放在畫面中央
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center, // 垂直置中
         crossAxisAlignment: CrossAxisAlignment.center, // 水平置中 (對於 Column 本身)
         mainAxisSize: MainAxisSize.min, // Column 盡可能小以包裹其子 Widget
         children: <Widget>[
-          // *** 你選擇的 SpinKit 載入動畫 ***
+          // 我選擇的 SpinKit 載入動畫 (wave)
           SpinKitWave(
-            // 這裡以 SpinKitFadingCircle 為例，你可以換成其他類型
             color: Theme.of(context).colorScheme.primary,
-            size: size,
-            // 其他 SpinKit 特有的屬性可以在這裡設定
+            size: Theme.of(context).textTheme.titleLarge?.fontSize ?? size,
           ),
 
           // 如果有提示文字，則顯示文字
