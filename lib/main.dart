@@ -6,6 +6,8 @@ import './router.dart';
 import './services/preferences_service.dart';
 import './providers/theme_provider.dart';
 import './widgets/connectivity_watcher.dart';
+import 'package:feedback/feedback.dart';
+import 'package:flutter/services.dart';
 
 // 將 main 函數改為異步，以便執行異步初始化
 Future<void> main() async {
@@ -24,18 +26,29 @@ Future<void> main() async {
   // 確保所有異步初始化完成後再移除 Splash Screen
   FlutterNativeSplash.remove();
 
-  runApp(
-    // ProviderScope 來自 flutter_riverpod，使用 ProviderScope 包裹你的應用程式根部
-    ProviderScope(
-      // 使用 overrides 來提供已經初始化好的 PreferencesService 實例
-      overrides: [
-        // 使用 overrideWithValue 覆蓋 preferencesServiceProvider
-        preferencesServiceProvider.overrideWithValue(prefsService),
-      ],
-      //控制有無網路的切換，用自訂widget包裝
-      child: ConnectivityWatcher(child: const MyApp()),
-    ),
-  );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, // 允許直向上方
+    DeviceOrientation.portraitDown, // 允許直向下方 (通常這兩個會一起設定)
+  ]).then((_) {
+    // 設定完成後再運行 App
+    runApp(
+      // ProviderScope 來自 flutter_riverpod，使用 ProviderScope 包裹你的應用程式根部
+      ProviderScope(
+        // 使用 overrides 來提供已經初始化好的 PreferencesService 實例
+        overrides: [
+          // 使用 overrideWithValue 覆蓋 preferencesServiceProvider
+          preferencesServiceProvider.overrideWithValue(prefsService),
+        ],
+        // 包裝feedback
+        child: BetterFeedback(
+          localeOverride: const Locale('zh'),
+          //控制有無網路的切換，用自訂widget包裝
+          // child: ConnectivityWatcher(child: const MyApp()),
+          child: ConnectivityWatcher(child: const MyApp()),
+        ),
+      ),
+    );
+  });
 }
 
 // 將 MyApp 改為 ConsumerWidget，以便使用 ref 讀取 Provider

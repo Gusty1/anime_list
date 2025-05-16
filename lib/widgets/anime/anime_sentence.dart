@@ -3,12 +3,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../app_loading_indicator.dart';
 import '../../models/hitokoto.dart';
-import '../../providers/api_providers.dart';
+import '../../providers/api_provider.dart';
 import '../../utils/logger.dart';
 
 // 首頁動漫句子，由於要使用riverpod提供的單一實例apiService，所以改為ConsumerStatefulWidget
 class AnimeSentence extends ConsumerStatefulWidget {
-  // <-- 修改為 ConsumerStatefulWidget
   const AnimeSentence({super.key});
 
   @override
@@ -50,7 +49,6 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
       // 通過 ref.read() 獲取 Riverpod 提供的 ApiService 實例
       // ref 在 ConsumerState 中可以直接訪問
       final apiService = ref.read(apiServiceProvider);
-
       final result = await apiService.fetchHitokoto();
 
       // mounted 是 Flutter 核心框架中，State 類別的一個布林 (boolean) 屬性。
@@ -94,7 +92,7 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: 2),
+        border: Border.all(color: Theme.of(context).colorScheme.onInverseSurface, width: 2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,7 +158,7 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
               backgroundColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
                 // 根據按鈕狀態設置背景色
                 if (states.contains(WidgetState.disabled)) {
-                  return Theme.of(context).colorScheme.surface; // 禁用時使用表面色或灰色
+                  return  Colors.grey; // 禁用時使用灰色
                 }
                 return Theme.of(context).colorScheme.secondaryContainer; // 正常時使用次要容器色
               }),

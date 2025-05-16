@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/hitokoto.dart';
+import '../models/anime_item.dart';
 import '../utils/logger.dart';
 import '../constants.dart';
 // import 'dart:developer' as developer; // AI說:雖然用了 logger，但保留 developer 導入以防萬一或作為對比
@@ -39,6 +40,40 @@ class ApiService {
     } catch (e) {
       // 記錄其他未知錯誤
       appLogger.e('Unexpected error during fetchHitokoto:', error: e);
+      return null;
+    }
+  }
+
+  //取得動漫資訊List
+  Future<List<AnimeItem>?> fetchAnimeInfoByYearMonth(String yearMonth) async {
+    try {
+      // GET 請求動漫資訊 API
+      final Response response = await _dio.get('$animeInfoBaseUrl$yearMonth.json');
+      if (response.statusCode == 200) {
+        // 檢查響應數據是否是 List
+        if (response.data is List) {
+          // 使用 AnimeItem.fromJson 解析響應數據
+          return response.data
+              .map<AnimeItem>((item) => AnimeItem.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else {
+          // 如果數據格式不符合預期，記錄警告
+          appLogger.w('Unexpected response data format for AnimeItem: ${response.data}');
+          return null;
+        }
+      } else {
+        // 記錄非 200 狀態碼的錯誤
+        appLogger.w('Error fetching AnimeItem: Status code ${response.statusCode}');
+        return null;
+      }
+    } on DioException catch (e) {
+      // 記錄 Dio 錯誤
+      appLogger.e('Dio error during fetchAnimeInfoByYearMonth:', error: e);
+      // 根據錯誤類型進行更精細的處理 (可選)
+      return null;
+    } catch (e) {
+      // 記錄其他未知錯誤
+      appLogger.e('Unexpected error during fetchAnimeInfoByYearMonth:', error: e);
       return null;
     }
   }

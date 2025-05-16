@@ -37,8 +37,7 @@ class ToastUtils {
   static void showShortToast(BuildContext context, String message) {
     // 從 BuildContext 獲取當前主題的配色方案和字體大小
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    // 使用 bodyMedium 或 bodySmall 的字體大小通常對 Toast 更合適，或者使用 Fluttertoast 的預設大小
-    final double fontSize = Theme.of(context).textTheme.bodyMedium?.fontSize ?? 16; // 調整預設字體大小為 16
+    final double fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 18; // 調整預設字體大小為 16
 
     // 呼叫私有的輔助方法顯示 Toast
     _showToast(
@@ -46,8 +45,25 @@ class ToastUtils {
       message,
       Toast.LENGTH_SHORT, // 設定為短時間
       ToastGravity.BOTTOM, // 設定在底部顯示
-      colorScheme.surface, // 使用主題表面色作為背景
-      colorScheme.onSurface, // 使用主題表面色的對比色作為文字顏色
+      colorScheme.primaryContainer, // 使用主題表面色作為背景
+      colorScheme.primary, // 使用主題表面色的對比色作為文字顏色
+      fontSize,
+    );
+  }
+
+  //錯誤toast
+  static void showShortToastError(BuildContext context, String message) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final double fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 18; // 調整預設字體大小為 16
+
+    // 呼叫私有的輔助方法顯示 Toast
+    _showToast(
+      context,
+      message,
+      Toast.LENGTH_SHORT, // 設定為短時間
+      ToastGravity.BOTTOM, // 設定在底部顯示
+      colorScheme.errorContainer, // 使用主題表面色作為背景
+      colorScheme.error, // 使用主題表面色的對比色作為文字顏色
       fontSize,
     );
   }

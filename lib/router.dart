@@ -2,12 +2,15 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/my_scaffold_wrapper.dart';
 import './screens/anime/anime_main_screen.dart';
+import './screens/anime/anime_list_screen.dart';
 import './screens/favorite/favorite_main_screen.dart';
 import './screens/setting/setting_main_screen.dart';
 import '../screens/no_network_screen.dart';
 import './screens/error_screen.dart';
 import './constants.dart';
 import './utils/logger.dart';
+import './widgets/anime/anime_bottom_bar.dart';
+import './widgets/favorite/refresh_btn.dart';
 
 // 定義 GoRouter 實例，使用 final 關鍵字，並在外部可訪問
 final GoRouter router = GoRouter(
@@ -19,12 +22,27 @@ final GoRouter router = GoRouter(
       builder:
           (context, state) => MyScaffoldWrapper(title: appTitle, body: const AnimeMainScreen()),
     ),
-    //收藏頁面
+    //動畫清單頁面
+    GoRoute(
+      path: '/anime/:year',
+      builder: (context, state) {
+        final String year = state.pathParameters['year']!;
+        return MyScaffoldWrapper(
+          title: '$year 年動畫清單',
+          body: AnimeListScreen(year: year),
+          bottomNavigationBar: AnimeBottomBar(year: year),
+        );
+      },
+    ),
+    // 收藏頁面
     GoRoute(
       path: favoriteRoute,
       builder:
-          (context, state) =>
-              MyScaffoldWrapper(title: favoriteTitle, body: const FavoriteMainScreen()),
+          (context, state) => MyScaffoldWrapper(
+            title: favoriteTitle,
+            body: const FavoriteMainScreen(),
+            floatingActionButton: const RefreshBtn(),
+          ),
     ),
     //設定頁面
     GoRoute(

@@ -5,8 +5,8 @@ import 'package:toggle_switch/toggle_switch.dart';
 import '../../providers/theme_provider.dart';
 
 //第3方套件的開關，我用來做亮暗主題的切換，由於會跟狀態變化監聽，所以獨立出來，不然會連其他UI都一起刷新
-class ThemeSwitchRow extends ConsumerWidget {
-  const ThemeSwitchRow({super.key});
+class ThemeSwitch extends ConsumerWidget {
+  const ThemeSwitch({super.key});
 
   @override
   // ConsumerWidget 的 build 方法接收 WidgetRef ref
