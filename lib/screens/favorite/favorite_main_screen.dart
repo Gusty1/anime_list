@@ -189,7 +189,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
           else if (_animeList.isEmpty) // 如果載入完成但列表為空
             Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.insert_emoticon,
