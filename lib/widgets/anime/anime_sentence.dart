@@ -22,7 +22,7 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
   @override
   void initState() {
     super.initState();
-    _fetchHitokoto(); // 初始化呼叫獲取名言的方法
+    _fetchHitokoto();
   }
 
   @override
@@ -88,7 +88,6 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),

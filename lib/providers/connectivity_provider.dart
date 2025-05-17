@@ -20,6 +20,6 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
     // 你需要根據實際情況或 connectivity_plus 文件來決定如何處理空列表
     // 通常 ConnectivityResult.none 表示無連接，如果列表為空，可能也對應無連接
     // 這裡簡單處理，如果列表為空，回傳 none (需要引入 connectivity_plus/connectivity_plus.dart 中的 ConnectivityResult)
-    return ConnectivityResult.none; // <-- 確保這裡回傳的是 ConnectivityResult 型別
+    return ConnectivityResult.none;
   });
 });

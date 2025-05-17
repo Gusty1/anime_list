@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/anime_item.dart';
 import './anime_card.dart';
 
+// 動畫清單的放動畫卡片的ListView
 class AnimeList extends StatelessWidget {
   final List<AnimeItem> animeList;
 
@@ -14,6 +15,7 @@ class AnimeList extends StatelessWidget {
       itemCount: animeList.length,
       itemBuilder: (context, index) {
         final item = animeList[index];
+        // 動畫卡片
         return AnimeCard(animeItem: item);
       },
     );

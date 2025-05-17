@@ -20,7 +20,6 @@ class ConnectivityWatcher extends ConsumerWidget {
         data: (status) {
           // 直接使用全局 router 實例
           final goRouter = router;
-
           // 使用 goRouter 實例來獲取當前 URI 和執行導航
           final currentUriString = goRouter.routerDelegate.currentConfiguration.uri.toString();
           appLogger.i("網路狀態變化: $status, 當前 URI: $currentUriString");

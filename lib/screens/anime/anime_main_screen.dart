@@ -7,9 +7,12 @@ class AnimeMainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: const [AnimeSentence(), Expanded(child: YearListCard())],
+    return Container(
+      margin: const EdgeInsets.all(10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: const [AnimeSentence(), Expanded(child: YearListCard())],
+      ),
     );
   }
 }

@@ -41,7 +41,6 @@ class ThemeSwitch extends ConsumerWidget {
             icons: const [Icons.wb_sunny, Icons.nightlight_round],
             labels: null,
             onToggle: (index) {
-              //開關切換要做的事
               if (index != null) {
                 final bool selectIsDark = index == 1;
                 // 使用 ref.read 呼叫 Notifier 的方法

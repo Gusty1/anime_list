@@ -4,7 +4,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../providers/year_month_provider.dart';
 
-// 動畫清單底部導航，由於內部有狀態，加上需要把參數傳到list screen，所以用riverpod
+// 動畫清單底部導航，使用第三方套件，由於內部有狀態，加上需要把參數傳到list screen，所以用riverpod
 class AnimeBottomBar extends ConsumerStatefulWidget {
   final String year; // 首頁傳進來的年份參數
 

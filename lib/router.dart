@@ -12,7 +12,7 @@ import './utils/logger.dart';
 import './widgets/anime/anime_bottom_bar.dart';
 import './widgets/favorite/refresh_btn.dart';
 
-// 定義 GoRouter 實例，使用 final 關鍵字，並在外部可訪問
+// 統一管理路徑，定義 GoRouter 實例，使用 final 關鍵字，並在外部可訪問
 final GoRouter router = GoRouter(
   initialLocation: homeRoute,
   routes: <RouteBase>[
@@ -22,7 +22,7 @@ final GoRouter router = GoRouter(
       builder:
           (context, state) => MyScaffoldWrapper(title: appTitle, body: const AnimeMainScreen()),
     ),
-    //動畫清單頁面
+    //動畫清單頁面，有多一個可選的bottomNavigationBar
     GoRoute(
       path: '/anime/:year',
       builder: (context, state) {
@@ -34,7 +34,7 @@ final GoRouter router = GoRouter(
         );
       },
     ),
-    // 收藏頁面
+    // 收藏頁面，有多一個可選的floatingActionButton
     GoRoute(
       path: favoriteRoute,
       builder:
@@ -70,9 +70,6 @@ final GoRouter router = GoRouter(
           appLogger.i('應用程式啟動時無網路。導向 /no-network');
           return noNetwork; // 導向無網路畫面
         }
-        // 如果列表不為空，表示有某種類型的連接，可以繼續導航
-        // 你也可以檢查列表中是否包含特定的連接類型，例如：
-        // if (connectivityResult.contains(ConnectivityResult.wifi)) { ... }
       } catch (e) {
         // 處理檢查網路時的潛在錯誤，例如權限問題
         appLogger.e('應用程式啟動時檢查網路發生錯誤: $e');

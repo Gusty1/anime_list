@@ -3,7 +3,6 @@ import '../utils/logger.dart';
 
 // 定義動漫年月的狀態管理 單一 String 狀態的 Notifier
 class YearMonthNotifier extends Notifier<String> {
-
   @override
   // build 方法用於初始化 Notifier 的狀態
   String build() {
@@ -31,5 +30,5 @@ class YearMonthNotifier extends Notifier<String> {
 // - StateT: Notifier 管理的狀態類型 (String)
 final yearMonthProvider = NotifierProvider<YearMonthNotifier, String>(
   // 這裡的工廠函數只需要返回 YearMonthNotifier 的實例即可
-      () => YearMonthNotifier(),
+  () => YearMonthNotifier(),
 );

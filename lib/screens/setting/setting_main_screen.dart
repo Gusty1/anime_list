@@ -31,7 +31,6 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
   Future<void> _loadPackageInfo() async {
     if (!mounted) return;
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    // 使用 setState 更新 _packageInfo，這會觸發這個 StatefulWidget 重建
     setState(() {
       _packageInfo = packageInfo;
     });
@@ -39,9 +38,9 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
 
   // 異步函數，開啟爸爸網址
   Future<void> _launchUrl(BuildContext context) async {
+    if (!mounted) return;
     final Uri url = Uri.parse(originUrl);
     if (!await launchUrl(url)) {
-      if (!mounted) return;
       ToastUtils.showShortToast(context, '無法開啟連結');
     }
   }
@@ -65,7 +64,8 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
             // 這是一個 TextButton，點擊它來關閉對話框
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-              onPressed: () async{
+              onPressed: () async {
+                if (!mounted) return;
                 final dbService = AnimeDatabaseService();
                 await dbService.clearAllAnimeItems();
                 ToastUtils.showShortToast(context, '清除成功');

@@ -1,26 +1,24 @@
-// lib/services/anime_database_service.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/anime_item.dart'; // 引入 AnimeItem 模型，請確認路徑正確
+import '../models/anime_item.dart';
 
-// *** 警告：此服務為開發用途，會在資料庫建立時刪除現有表格及其所有資料！ ***
-// *** 不適用於需要保留使用者資料的生產環境。 ***
-
+// sqlite的相關服務
 class AnimeDatabaseService {
   // 單例模式
   static final AnimeDatabaseService _instance = AnimeDatabaseService._internal();
+
   factory AnimeDatabaseService() => _instance;
+
   AnimeDatabaseService._internal(); // 私有建構子
 
   static Database? _database;
 
   static const String _dbName = 'anime_database.db';
+
   // 在開發階段，如果使用 DROP/CREATE 策略，版本號可以保持固定
   static const int _dbVersion = 1; // 版本號可以保持固定
   static const String _tableName = 'anime_items';
 
-  // **欄位名稱常數，與 AnimeItem 屬性名稱一致**
-  // 變數名稱就是屬性名稱，值是資料庫實際欄位名稱的字串
   static const String name = 'name'; // TEXT PRIMARY KEY
   static const String year = 'year'; // INTEGER
   static const String date = 'date'; // TEXT
@@ -31,7 +29,6 @@ class AnimeDatabaseService {
   static const String img = 'img'; // TEXT
   static const String description = 'description'; // TEXT
   static const String official = 'official'; // TEXT
-
 
   // 取得資料庫實例，如果不存在則開啟並建表 (會執行 DROP TABLE)
   Future<Database> _getDatabase() async {
@@ -55,7 +52,7 @@ class AnimeDatabaseService {
   // 資料庫建表方法 (包含刪除現有表格的邏輯)
   Future<void> _onCreate(Database db, int version) async {
     // *** 警告：這行會刪除現有的 anime_items 表格及其所有資料！ ***
-    await db.execute('DROP TABLE IF EXISTS $_tableName'); // <--- 在建立前刪除表格
+    // await db.execute('DROP TABLE IF EXISTS $_tableName'); // 要測試再打開就好
 
     // 建立新的表格 (使用新的常數名稱)
     await db.execute('''
@@ -76,14 +73,11 @@ class AnimeDatabaseService {
 
   Future<int> insertAnimeItem(AnimeItem item) async {
     final db = await _getDatabase();
-    return await db.insert(
-      _tableName,
-      item.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    return await db.insert(_tableName, item.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  Future<AnimeItem?> getAnimeItemByName(String animeName) async { // 參數名稱改為 animeName 避免與欄位常數混淆
+  Future<AnimeItem?> getAnimeItemByName(String animeName) async {
+    // 參數名稱改為 animeName 避免與欄位常數混淆
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query(
       _tableName,
@@ -106,7 +100,8 @@ class AnimeDatabaseService {
     });
   }
 
-  Future<List<AnimeItem>> searchAnimeItemsByName(String query) async { // <--- 方法名稱、參數名和回傳型別已修改
+  Future<List<AnimeItem>> searchAnimeItemsByName(String query) async {
+    // <--- 方法名稱、參數名和回傳型別已修改
     final db = await _getDatabase();
 
     // 查詢表格，使用 LIKE 進行模糊查詢
@@ -124,7 +119,8 @@ class AnimeDatabaseService {
     });
   }
 
-  Future<int> deleteAnimeItemByName(String animeName) async { // 參數名稱改為 animeName
+  Future<int> deleteAnimeItemByName(String animeName) async {
+    // 參數名稱改為 animeName
     final db = await _getDatabase();
     return await db.delete(
       _tableName,

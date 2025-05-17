@@ -11,6 +11,7 @@ import './anime_detail_modal.dart';
 import '../../services/anime_database_service.dart';
 import '../toast_utils.dart';
 
+//動畫的卡片樣式
 class AnimeCard extends ConsumerStatefulWidget {
   final AnimeItem animeItem;
 
@@ -38,35 +39,33 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
 
   //收藏改變狀態
   Future<void> _toggleFavorite() async {
-    final yearMonthNotifier = ref.read(yearMonthProvider.notifier);
-    final currentYearMonth = yearMonthNotifier.state;
-    int result = 0;
-    // 檢查 Widget 是否仍然掛載
-    if (mounted) {
-      if (_favorite) {
-        result = await dbService.deleteAnimeItemByName(widget.animeItem.name);
-      } else {
-        // 目前不是收藏狀態 -> 嘗試收藏 (新增)，還要寫入年分，排序用
-        var year = currentYearMonth.split('.')[0];
-        AnimeItem newItemWithModifiedDate = widget.animeItem.copyWith(
-          date: '$year/${widget.animeItem.date}',
-        );
-        result = await dbService.insertAnimeItem(newItemWithModifiedDate);
-      }
+    if (!mounted) return;
 
-      if (result > 0) {
-        ToastUtils.showShortToast(context, _favorite ? '取消收藏成功' : '收藏成功');
-        setState(() {
-          _favorite = !_favorite;
-        });
-      } else if (result == 0 && !_favorite) {
-        //已經存在資料，但為了狀態同步還是要更新
-        setState(() {
-          _favorite = true;
-        });
-      } else {
-        ToastUtils.showShortToastError(context, '發生錯誤');
-      }
+    final currentYearMonth = ref.read(yearMonthProvider);
+    int result = 0;
+    if (_favorite) {
+      result = await dbService.deleteAnimeItemByName(widget.animeItem.name);
+    } else {
+      // 目前不是收藏狀態 -> 嘗試收藏 (新增)，還要寫入年分，排序用
+      var year = currentYearMonth.split('.')[0];
+      AnimeItem newItemWithModifiedDate = widget.animeItem.copyWith(
+        date: '$year/${widget.animeItem.date}',
+      );
+      result = await dbService.insertAnimeItem(newItemWithModifiedDate);
+    }
+
+    if (result > 0) {
+      ToastUtils.showShortToast(context, _favorite ? '取消收藏成功' : '收藏成功');
+      setState(() {
+        _favorite = !_favorite;
+      });
+    } else if (result == 0 && !_favorite) {
+      //已經存在資料，但為了狀態同步還是要更新
+      setState(() {
+        _favorite = true;
+      });
+    } else {
+      ToastUtils.showShortToastError(context, '發生錯誤');
     }
   }
 
@@ -80,9 +79,6 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
         onTap: () {
           showDialog(
             context: context,
-            // **設定 Modal 外部遮罩層的顏色** (可選，預設通常是半透明黑色)
-            // barrierColor: Colors.black.withOpacity(0.6), // 範例：設定半透明黑色
-            // **builder 參數：使用正確的語法返回要作為 Modal 內容的 Widget**
             builder: (BuildContext context) {
               return AnimeDetailModal(
                 animeItem: widget.animeItem,
@@ -116,8 +112,6 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                 ),
               ),
               const SizedBox(width: 8.0),
-              // 圖片與文字之間的間隔
-              // 右邊部分：文字內容 (使用 Expanded 讓其佔滿除了圖片之外的剩餘空間)
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -134,7 +128,6 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2.0),
-                    // 標題與副標題之間的間隔
                     Text(
                       widget.animeItem.originalName,
                       style: TextStyle(
@@ -154,6 +147,7 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // 時間如果是收藏的會有年月日，文字會被截斷，所以判斷如果是含有年月日的不要顯示首播時間
                               if (widget.animeItem.date.split('/').length == 2)
                                 AutoSizeText(
                                   '首播時間: ${widget.animeItem.date} ${widget.animeItem.time} ',
@@ -179,6 +173,7 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
+                          //這邊用灰色的，讓他看起來是不能點的
                           child:
                               _favorite
                                   ? const Icon(Icons.favorite, color: Colors.grey)

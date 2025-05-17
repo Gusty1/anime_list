@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants.dart';
 
-//我的抽屜導航widget
+//我的左側抽屜導航widget
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
 

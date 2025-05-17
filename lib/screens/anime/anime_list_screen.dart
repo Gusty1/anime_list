@@ -10,14 +10,14 @@ import '../error_screen.dart';
 import '../../utils/logger.dart';
 import '../../widgets/anime/anime_list.dart';
 
-// FutureProvider definition (assumed correct from previous steps)
+// 監測年月依賴改變的方法，好像是因為我的回傳widget比較複雜，所以AI說只能這樣寫
 final animeListByYearMonthProvider = FutureProvider<List<AnimeItem>>((ref) async {
   final currentYearMonth = ref.watch(yearMonthProvider);
   appLogger.i('animeListByYearMonthProvider: yearMonth 依賴改變或初始化，準備載入資料 for $currentYearMonth');
 
   if (currentYearMonth.isEmpty || currentYearMonth == '預設的初始年月') {
     // Use actual default
-    appLogger.i('animeListByYearMonthProvider: 當前年月是預設值或空的，跳過載入。');
+    appLogger.i('animeListByYearMonthProvider: 當前年月是空的，跳過載入。');
     return Future.value([]);
   }
 
@@ -39,7 +39,8 @@ final animeListByYearMonthProvider = FutureProvider<List<AnimeItem>>((ref) async
 
 class AnimeListScreen extends ConsumerStatefulWidget {
   // 保留 year 參數，因為它在 _filterAnimeListByWeekday 中使用
-  final String year; // 年份來自路由或父層
+  final String year;
+
   const AnimeListScreen({super.key, required this.year});
 
   @override
@@ -72,7 +73,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
             final day = int.parse(parts[1]);
             int yearInt;
             try {
-              yearInt = int.parse(widget.year); // 使用 widget.year
+              yearInt = int.parse(widget.year);
             } catch (e) {
               appLogger.e('錯誤: _filterAnimeListByWeekday 解析 widget.year "${widget.year}" 失敗 - $e');
               return false;
@@ -81,7 +82,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
             return date.weekday == weekday;
           } catch (e) {
             appLogger.e(
-              '錯誤: _filterAnimeListByWeekday 處理日期 "${item.date}" 或年份 "${widget.year}" 失敗 - ${e.toString()}',
+              '錯誤: _filterAnimeListByWeekday ${item.name}的日期 "${item.date}" 或年份 "${widget.year}" 失敗 - ${e.toString()}',
             );
             return false;
           }
@@ -97,7 +98,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
         final timePartsA = a.time.split(':');
         final hourA = int.parse(timePartsA[0]);
         final minuteA = int.parse(timePartsA[1]);
-        int yearIntA = int.parse(widget.year); // 使用 widget.year
+        int yearIntA = int.parse(widget.year);
         final dateTimeA = DateTime(yearIntA, monthA, dayA, hourA, minuteA);
 
         // 解析項目 b 的日期和時間
@@ -107,16 +108,14 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
         final timePartsB = b.time.split(':');
         final hourB = int.parse(timePartsB[0]);
         final minuteB = int.parse(timePartsB[1]);
-        int yearIntB = int.parse(widget.year); // 使用 widget.year
+        int yearIntB = int.parse(widget.year);
         final dateTimeB = DateTime(yearIntB, monthB, dayB, hourB, minuteB);
 
         return dateTimeA.compareTo(dateTimeB);
       } catch (e) {
         // 理論上如果過濾函數正常工作，這裡不應該發生解析錯誤。
         // 作為防禦性編程，記錄錯誤並讓這兩個項目相對順序不定。
-        appLogger.e(
-          '錯誤: Sort - 處理日期/時間 "${a.date}" "${a.time}" 或 "${b.date}" "${b.time}" 失敗 (排序時) - ${e.toString()}',
-        );
+        appLogger.e('錯誤: Sort - 處理日期/時間 "${a.name} 錯誤") - ${e.toString()}');
         return 0; // 返回 0 表示相等，不改變相對順序
       }
     });
@@ -136,12 +135,9 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
   // 協助函數：設定 yearMonthProvider 的初始狀態
   void _setInitialYearMonthProvider(String initialYear) {
     final yearMonthNotifier = ref.read(yearMonthProvider.notifier);
-    // 假設初始載入該年份的 01 月資料
-    String initialYearMonth = '${widget.year}.01'; // 範例：預設 Jan
+    // 初始載入該年份的冬番(1月)資料
+    String initialYearMonth = '${widget.year}.01';
     yearMonthNotifier.setYearMonth(initialYearMonth);
-    appLogger.i(
-      'initState callback: Setting yearMonthProvider initial state to: $initialYearMonth',
-    );
   }
 
   void _onTabChanged(int index) {
@@ -175,8 +171,6 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
-              // 設定 Column 佔用的空間為最小，只包裹其子項
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.sentiment_dissatisfied,
@@ -205,7 +199,6 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
               List.generate(tabs.length, (index) {
                 final viewWeekday = _indexToWeekday[index];
                 final viewFilteredList = _filterAnimeListByWeekday(animeList, viewWeekday);
-
                 return AnimeList(animeList: viewFilteredList);
               }).toList(),
           tabBarProperties: TabBarProperties(

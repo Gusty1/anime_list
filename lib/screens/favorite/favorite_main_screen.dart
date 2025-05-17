@@ -21,8 +21,6 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   bool _loading = false;
   List<AnimeItem> _animeList = [];
 
-
-
   @override
   void initState() {
     super.initState();
@@ -40,6 +38,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   // 處理按鈕點擊事件的方法
   Future<void> _queryMyAnimeList(context) async {
     try {
+      if (_loading || !mounted) return;
       setState(() {
         _loading = true;
       });
@@ -57,20 +56,24 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
           final yearIntA = int.parse(datePartsA[0]);
           final monthA = int.parse(datePartsA[1]);
           final dayA = int.parse(datePartsA[2]);
-          final dateTimeA = DateTime(yearIntA, monthA, dayA);
+          final timePartsA = a.time.split(':');
+          final hourA = int.parse(timePartsA[0]);
+          final minuteA = int.parse(timePartsA[1]);
+          final dateTimeA = DateTime(yearIntA, monthA, dayA, hourA, minuteA);
 
           // 解析項目 b 的日期和時間
           final datePartsB = b.date.split('/');
           final yearIntB = int.parse(datePartsB[0]);
           final monthB = int.parse(datePartsB[1]);
           final dayB = int.parse(datePartsB[2]);
-          final dateTimeB = DateTime(yearIntB, monthB, dayB);
+          final timePartsB = b.time.split(':');
+          final hourB = int.parse(timePartsB[0]);
+          final minuteB = int.parse(timePartsB[1]);
+          final dateTimeB = DateTime(yearIntB, monthB, dayB, hourB, minuteB);
 
           return dateTimeB.compareTo(dateTimeA);
         } catch (e) {
-          appLogger.e(
-            '錯誤: Sort - 處理日期/時間 "${a.date}" "${a.time}" 或 "${b.date}" "${b.time}" 失敗 (排序時) - ${e.toString()}',
-          );
+          appLogger.e('錯誤: Sort - 處理日期/時間 "${a.name}" 失敗 - ${e.toString()}');
           return 0; // 返回 0 表示相等，不改變相對順序
         }
       });
@@ -94,15 +97,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
     ref.listen<bool>(favoriteRefreshProvider, (previous, next) {
       // 判斷布林值是否確實發生了變化
       if (previous != next) {
-        appLogger.i('偵測到 favoriteRefreshProvider 狀態改變 ($previous -> $next)，觸發 _queryMyAnimeList 方法');
-        // 檢查 Widget 是否仍然掛載，避免在 disposed 後呼叫 _queryMyAnimeList
-        if (mounted) {
-          appLogger.i('Widget 已掛載，呼叫 _queryMyAnimeList 方法');
-          // *** 在這裡呼叫您本地的 _queryMyAnimeList 方法 ***
-          _queryMyAnimeList(context);
-        } else {
-          appLogger.w('Widget 已被 disposed，Provider 狀態改變但未觸發 _queryMyAnimeList');
-        }
+        _queryMyAnimeList(context);
       }
     });
 
@@ -110,15 +105,15 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
       padding: const EdgeInsets.all(5.0),
       margin: const EdgeInsets.all(5.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start, // 內容靠頂部對齊
-        crossAxisAlignment: CrossAxisAlignment.stretch, // 子 Widget 沿水平方向拉伸
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
               // 設定邊框
               border: Border.all(
                 color: Theme.of(context).colorScheme.surfaceTint,
-                width: 2.0, // 邊框粗細
+                width: 2.0,
               ),
               // 設定圓角
               borderRadius: BorderRadius.circular(12.0),
@@ -132,8 +127,8 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                     enabled: !_loading && _animeList.isNotEmpty,
                     controller: _textController,
                     decoration: const InputDecoration(
-                      labelText: '輸入動漫名稱',
-                      border: OutlineInputBorder() ,
+                      labelText: '請輸入動漫名稱',
+                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.text, // 設置彈出的鍵盤類型 (text, number, emailAddress 等)
                   ),
@@ -155,7 +150,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                         if (states.contains(WidgetState.disabled)) {
                           return Colors.grey; // 禁用時使用灰色
                         }
-                        return Theme.of(context).colorScheme.secondaryContainer; // 正常時使用次要容器色
+                        return Theme.of(context).colorScheme.secondaryContainer;
                       }),
                       foregroundColor: WidgetStateProperty.resolveWith<Color>((
                         Set<WidgetState> states,
@@ -186,16 +181,15 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                 ),
                 // Text.rich 的 style 屬性設定了整個 TextSpan 樹的基礎樣式
                 // 子 TextSpan 的 style 會覆蓋這裡的設定
-                style: Theme.of(context).textTheme.bodyLarge, // <--- 設定基礎樣式
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
           if (_loading)
-            const AppLoadingIndicator()
-
-          else if (_animeList.isEmpty)
+            Expanded(child: const AppLoadingIndicator())
+          else if (_animeList.isEmpty) // 如果載入完成但列表為空
             Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.insert_emoticon,
@@ -204,7 +198,8 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                   ),
                   Center(
                     child: Text(
-                      '尚未收藏任何動漫',
+                      _textController.text.isNotEmpty ? '找不到符合條件的動漫' : '尚未收藏任何動漫',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
                         color: Theme.of(context).colorScheme.secondary,

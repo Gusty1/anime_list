@@ -16,9 +16,8 @@ class AppLoadingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // 垂直置中
-        crossAxisAlignment: CrossAxisAlignment.center, // 水平置中 (對於 Column 本身)
-        mainAxisSize: MainAxisSize.min, // Column 盡可能小以包裹其子 Widget
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           // 我選擇的 SpinKit 載入動畫 (wave)
           SpinKitWave(

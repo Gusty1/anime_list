@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:go_router/go_router.dart';
 
-
 // 首頁產生2018到今年的卡片 Widget
 class YearListCard extends StatelessWidget {
   const YearListCard({super.key});

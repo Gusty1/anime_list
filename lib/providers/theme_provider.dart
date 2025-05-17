@@ -6,7 +6,6 @@ import '../utils/logger.dart';
 // 定義管理「是否啟用暗色模式」 boolean 狀態的 Notifier
 // Notifier<bool> 表示這個 Notifier 管理的狀態是一個 bool 值
 class ThemeNotifier extends Notifier<bool> {
-
   // 使用 late 關鍵字，表示這個變數會在 build 方法中被初始化
   late final PreferencesService _prefsService;
 
@@ -30,7 +29,8 @@ class ThemeNotifier extends Notifier<bool> {
     } else {
       // 如果讀不到值 (為 null)，表示是第一次載入偏好
       // 獲取系統亮度
-      final Brightness systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      final Brightness systemBrightness =
+          WidgetsBinding.instance.platformDispatcher.platformBrightness;
       // 判斷系統是否為暗色模式
       final bool systemIsDark = systemBrightness == Brightness.dark;
 

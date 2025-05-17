@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import '../../providers/year_month_provider.dart';
 import '../../models/anime_item.dart';
 import '../../constants.dart';
 import '../app_loading_indicator.dart';
@@ -13,7 +15,8 @@ import '../../utils/show_carrier.dart';
 import '../../utils/logger.dart';
 import '../toast_utils.dart';
 
-class AnimeDetailModal extends StatefulWidget {
+//動畫清單的detail modal
+class AnimeDetailModal extends ConsumerStatefulWidget {
   final AnimeItem animeItem;
   final bool favorite;
   final Function toggleFavorite;
@@ -27,11 +30,11 @@ class AnimeDetailModal extends StatefulWidget {
 
   @override
   // 創建並返回對應的 State 物件 (保持不變)
-  _AnimeDetailModalState createState() => _AnimeDetailModalState();
+  ConsumerState createState() => _AnimeDetailModalState();
 }
 
 // 創建對應的 State 類別
-class _AnimeDetailModalState extends State<AnimeDetailModal> {
+class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
   // State 變數來追蹤圖片是否準備好分享 (保持不變)
   bool _isImageReady = false;
   bool _favorite = false;
@@ -41,7 +44,8 @@ class _AnimeDetailModalState extends State<AnimeDetailModal> {
   ImageInfo? _imageInfo;
 
   @override
-  initState() {
+  void initState() {
+    super.initState();
     setState(() {
       _favorite = widget.favorite;
     });
@@ -49,11 +53,13 @@ class _AnimeDetailModalState extends State<AnimeDetailModal> {
 
   // 將 _shareAnimeDetails 方法移到 State 類別中 (保持不變)
   Future<void> _shareAnimeDetails(BuildContext context) async {
+    final currentYearMonth = ref.read(yearMonthProvider);
+    final year = currentYearMonth.split('.')[0];
     // 構建要分享的文字內容
     final String shareText = '''
       ${widget.animeItem.name} (${widget.animeItem.originalName})
-      首播時間: ${widget.animeItem.date} ${widget.animeItem.time}
-       ${showCarrier(widget.animeItem.carrier)} /  ${widget.animeItem.season}
+      首播時間: '$year${widget.animeItem.date} ${widget.animeItem.time}
+      ${showCarrier(widget.animeItem.carrier)} /  ${widget.animeItem.season}
       ${widget.animeItem.official.isNotEmpty ? '官方網站: ${widget.animeItem.official}' : ''}
 
       ${widget.animeItem.description.isNotEmpty ? '\n${widget.animeItem.description}' : ''}
@@ -196,7 +202,7 @@ class _AnimeDetailModalState extends State<AnimeDetailModal> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           // 主要的內容 Column
-          mainAxisSize: MainAxisSize.min, // Column 佔用最少空間
+          mainAxisSize: MainAxisSize.max, // Column 佔用最少空間
           crossAxisAlignment: CrossAxisAlignment.start, // 內容靠左對齊
           children: [
             Row(
@@ -282,7 +288,7 @@ class _AnimeDetailModalState extends State<AnimeDetailModal> {
                               setState(() {
                                 _favorite = !_favorite;
                               });
-                              if (widget.toggleFavorite != null) widget.toggleFavorite();
+                              widget.toggleFavorite();
                             },
                             tooltip: '收藏動漫',
                           ),

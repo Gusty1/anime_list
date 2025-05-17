@@ -25,21 +25,10 @@ class NoNetworkScreen extends StatelessWidget {
               ),
               SizedBox(height: 10),
               AutoSizeText(
-                '請檢查您的網路連線後重試',
+                '請檢查您的網路連線狀態',
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
-              // 可選：添加一個按鈕，使用者點擊時可以再次檢查網路或重試載入
-              // 如果你在這裡需要使用 ref，請將本 Widget 改為 ConsumerWidget 或 ConsumerStatefulWidget
-              // 例如：
-              // ElevatedButton(
-              //   onPressed: () {
-              //     // 假設有一個讀取數據的 Provider，你可以 refresh 它
-              //     // ref.refresh(someDataProvider);
-              //     // 或者只是等待網路恢復，ConnectivityWatcher 會自動跳轉
-              //   },
-              //   child: const Text('重試'),
-              // ),
             ],
           ),
         ),

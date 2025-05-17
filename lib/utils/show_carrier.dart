@@ -1,3 +1,4 @@
+// 處理動畫資訊對應的類別顯示文字
 String showCarrier(String carrier) {
   switch (carrier) {
     case 'Novel': return '小說';

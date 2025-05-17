@@ -11,12 +11,11 @@ import 'package:path/path.dart' as path;
 import '../utils/logger.dart';
 import '../../widgets/toast_utils.dart';
 
-//螢幕之間共用的導覽列與抽屜
+//螢幕之間共用的導覽列與左側抽屜
 class MyScaffoldWrapper extends StatelessWidget {
   final String title; // 畫面的標題
   final Widget body; // 畫面的主要內容
   final Widget? bottomNavigationBar; //可選底部導覽列
-
   final Widget? floatingActionButton; //可選右下按鈕
 
   const MyScaffoldWrapper({
@@ -33,6 +32,7 @@ class MyScaffoldWrapper extends StatelessWidget {
     required BuildContext context,
   }) async {
     String? attachmentPath; // 用於儲存成功創建的截圖臨時檔案路徑，如果失敗則為 null
+    if (!context.mounted) return;
 
     try {
       // 處理截圖，使用 await 等待獲取截圖的位元組數據 (Uint8List)
@@ -102,11 +102,10 @@ class MyScaffoldWrapper extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(title, style: Theme.of(context).textTheme.titleLarge),
         centerTitle: true,
-        // 右邊按鈕設定問題回報
+        // 標題右邊設定feedback(bug)按鈕
         actions: <Widget>[
           IconButton(
             onPressed: () {
-              // feedback提交要做的事
               BetterFeedback.of(context).show((UserFeedback feedback) async {
                 handleFeedbackAndSendEmail(feedback: feedback, context: context);
               });

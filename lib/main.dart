@@ -26,6 +26,7 @@ Future<void> main() async {
   // 確保所有異步初始化完成後再移除 Splash Screen
   FlutterNativeSplash.remove();
 
+  //固定螢幕只能是直向
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp, // 允許直向上方
     DeviceOrientation.portraitDown, // 允許直向下方 (通常這兩個會一起設定)

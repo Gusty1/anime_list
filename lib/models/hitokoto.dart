@@ -5,13 +5,13 @@ class Hitokoto {
   final String hitokoto;
   final String type;
   final String from;
+
   // from_who 可能是 null，所以使用 String? (nullable String)
   final String? fromWho;
   final String creator;
   final int creatorUid;
   final int reviewer;
   final String commitFrom;
-  // created_at 看起來像時間戳字串，使用 String
   final String createdAt;
   final int length;
 
@@ -45,7 +45,7 @@ class Hitokoto {
       creatorUid: json['creator_uid'] as int,
       reviewer: json['reviewer'] as int,
       commitFrom: json['commit_from'] as String,
-      createdAt: json['created_at'] as String, // 保持 String 類型
+      createdAt: json['created_at'] as String,
       length: json['length'] as int,
     );
   }
