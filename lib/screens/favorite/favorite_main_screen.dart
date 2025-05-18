@@ -21,6 +21,8 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   bool _loading = false;
   List<AnimeItem> _animeList = [];
 
+  int _totalAnimeCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +84,12 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
         _animeList = result;
         _loading = false;
       });
+
+      if(_textController.text.isEmpty){
+        setState(() {
+          _totalAnimeCount = _animeList.length;
+        });
+      }
     } catch (e) {
       appLogger.e('查詢失敗: $e');
       ToastUtils.showShortToastError(context, '查詢失敗');
@@ -100,6 +108,12 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
         _queryMyAnimeList(context);
       }
     });
+    String emptyText = '';
+    if (_animeList.isEmpty && _textController.text.isNotEmpty) {
+      emptyText = '找不到符合條件的動漫';
+    } else if (_animeList.isEmpty) {
+      emptyText = '尚未收藏任何動漫';
+    }
 
     return Container(
       padding: const EdgeInsets.all(5.0),
@@ -111,10 +125,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
           Container(
             decoration: BoxDecoration(
               // 設定邊框
-              border: Border.all(
-                color: Theme.of(context).colorScheme.surfaceTint,
-                width: 2.0,
-              ),
+              border: Border.all(color: Theme.of(context).colorScheme.surfaceTint, width: 2.0),
               // 設定圓角
               borderRadius: BorderRadius.circular(12.0),
               color: Theme.of(context).colorScheme.surface,
@@ -124,7 +135,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
               children: [
                 Expanded(
                   child: TextField(
-                    enabled: !_loading && _animeList.isNotEmpty,
+                    enabled: !_loading ,
                     controller: _textController,
                     decoration: const InputDecoration(
                       labelText: '請輸入動漫名稱',
@@ -137,7 +148,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                   padding: const EdgeInsets.only(left: 6.0),
                   child: IconButton(
                     onPressed:
-                        !_loading && _animeList.isNotEmpty
+                        !_loading
                             ? () => _queryMyAnimeList(context)
                             : null,
                     icon: Icon(Icons.search),
@@ -173,7 +184,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                   text: '共收藏 ',
                   children: <TextSpan>[
                     TextSpan(
-                      text: '${_animeList.length}',
+                      text: '$_totalAnimeCount',
                       style: const TextStyle(color: Colors.lightBlue, fontWeight: FontWeight.bold),
                     ),
                     TextSpan(text: ' 部動漫'),
@@ -198,7 +209,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                   ),
                   Center(
                     child: Text(
-                      _textController.text.isNotEmpty ? '找不到符合條件的動漫' : '尚未收藏任何動漫',
+                      emptyText,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,

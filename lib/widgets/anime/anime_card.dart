@@ -77,6 +77,7 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: InkWell(
         onTap: () {
+          if(!mounted) return;
           showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -107,7 +108,12 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                             : '$imageBaseUrl${widget.animeItem.img}',
                     fit: BoxFit.cover, // 填充設定大小並可能裁剪圖片
                     placeholder: (context, url) => const AppLoadingIndicator(),
-                    errorWidget: (context, url, error) => const Icon(Icons.error, size: 40.0),
+                    errorWidget:
+                        (context, url, error) => Icon(
+                          Icons.error,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 40.0,
+                        ),
                   ),
                 ),
               ),
