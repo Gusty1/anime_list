@@ -29,15 +29,16 @@ class AnimeDetailModal extends ConsumerStatefulWidget {
   });
 
   @override
-  // 創建並返回對應的 State 物件 (保持不變)
   ConsumerState createState() => _AnimeDetailModalState();
 }
 
 // 創建對應的 State 類別
 class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
-  // State 變數來追蹤圖片是否準備好分享 (保持不變)
+  // State 變數來追蹤圖片是否準備好分享
   bool _isImageReady = false;
   bool _favorite = false;
+  // 【改動】新增一個旗標來追蹤 State 是否正在被銷毀
+  bool _isDisposing = false;
 
   // 變數來管理圖片流的監聽器 (保持不變)
   ImageStream? _imageStream;
@@ -51,8 +52,9 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
     });
   }
 
-  // 將 _shareAnimeDetails 方法移到 State 類別中 (保持不變)
   Future<void> _shareAnimeDetails(BuildContext context) async {
+    if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
+
     final currentYearMonth = ref.read(yearMonthProvider);
     final year = currentYearMonth.split('.')[0];
     // 構建要分享的文字內容
@@ -68,9 +70,9 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
 
     // 構建圖片的網絡 URL
     final String imageUrl =
-        widget.animeItem.img.startsWith('http')
-            ? widget.animeItem.img
-            : '$imageBaseUrl${widget.animeItem.img}';
+    widget.animeItem.img.startsWith('http')
+        ? widget.animeItem.img
+        : '$imageBaseUrl${widget.animeItem.img}';
 
     try {
       // 步驟 1: 下載圖片到暫存文件
@@ -113,33 +115,47 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadImage();
+    // 【改動】在 didChangeDependencies 中呼叫 _loadImage，並檢查 isDisposing
+    if(!_isDisposing) {
+      _loadImage();
+    }
   }
 
   // Lifecycle 方法：當 Widget 的配置改變時被呼叫 (保持不變)
   @override
   void didUpdateWidget(covariant AnimeDetailModal oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
     if (widget.animeItem.img != oldWidget.animeItem.img) {
       _isImageReady = false;
       _imageInfo = null;
-      _imageStream?.removeListener(
-        ImageStreamListener(
-          (info, sync) {},
-          onError: (dynamic exception, StackTrace? stackTrace) {},
-        ),
-      );
+      // 【改動】移除舊監聽器前先檢查 _imageStream 是否為 null
+      if (_imageStream != null) {
+        _imageStream?.removeListener(
+          ImageStreamListener(
+                (info, sync) {},
+            onError: (dynamic exception, StackTrace? stackTrace) {},
+          ),
+        );
+        _imageStream = null; // 【改動】設置為 null
+      }
       _loadImage();
     }
   }
 
-  // 方法：載入圖片並監聽其狀態 (保持不變)
+  // 方法：載入圖片並監聽其狀態
   void _loadImage() {
+    // 【改動】在方法開頭檢查 isDisposing
+    if(!mounted || _isDisposing) {
+      appLogger.d('loadImage called when not mounted or disposing. Returning.');
+      return;
+    }
+
     // 構建圖片的網絡 URL，處理相對路徑
     final String imageUrl =
-        widget.animeItem.img.startsWith('http')
-            ? widget.animeItem.img
-            : '$imageBaseUrl${widget.animeItem.img}';
+    widget.animeItem.img.startsWith('http')
+        ? widget.animeItem.img
+        : '$imageBaseUrl${widget.animeItem.img}';
 
     // 檢查圖片 URL 是否有效
     if (imageUrl.isEmpty) {
@@ -153,13 +169,27 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
     final ImageProvider imageProvider = CachedNetworkImageProvider(imageUrl);
 
     // 解析圖片源，獲取圖片流
+    // 【改動】先移除舊的監聽器，如果有的話
+    if (_imageStream != null) {
+      _imageStream?.removeListener(
+        ImageStreamListener(
+              (info, sync) {},
+          onError: (dynamic exception, StackTrace? stackTrace) {},
+        ),
+      );
+    }
     _imageStream = imageProvider.resolve(createLocalImageConfiguration(context));
 
     // 添加一個監聽器到圖片流
     _imageStream!.addListener(
       ImageStreamListener(
         // 成功載入圖片時的呼叫回
-        (info, synchronousCall) {
+            (info, synchronousCall) {
+          // 【改動】檢查 mounted 和 isDisposing
+          if(!mounted || _isDisposing) {
+            appLogger.d('Image success callback fired when not mounted or disposing. Returning.');
+            return;
+          }
           setState(() {
             _imageInfo = info;
             _isImageReady = true; // 圖片載入成功，設定狀態為 true，啟用按鈕
@@ -168,10 +198,47 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
         },
         // 圖片載入錯誤時的呼叫回
         onError: (dynamic exception, StackTrace? stackTrace) {
-          setState(() {
-            _isImageReady = false; // 圖片載入失敗，設定狀態為 false，禁用按鈕
+          appLogger.d('Image error callback fired. mounted (start): $mounted, isDisposing (start): $_isDisposing');
+
+          // 【改動】立即移除監聽器，防止重複回呼
+          if (_imageStream != null) {
+            _imageStream?.removeListener(
+              ImageStreamListener(
+                    (info, sync) {},
+                onError: (dynamic e, StackTrace? s) {},
+              ),
+            );
+            _imageStream = null; // 【改動】設置為 null
+          }
+
+          // 【改動】檢查 mounted 和 isDisposing，如果任一個為 true，就直接返回
+          if (!mounted || _isDisposing) {
+            appLogger.d('Mounted is false or isDisposing is true, returning from error callback.');
+            return;
+          }
+
+          // 【改動】如果 mounted 是 true 且不是正在銷毀，將 setState 安排到下一個微任務
+          appLogger.d('Mounted is true and not disposing, scheduling setState in microtask.');
+          Future.microtask(() {
+            // 【改動】在微任務中再次檢查 mounted 和 isDisposing
+            if (!mounted || _isDisposing) {
+              appLogger.d('Mounted is now false or isDisposing is true in microtask, cancelling setState.');
+              return;
+            }
+            appLogger.d('Calling setState via microtask in error callback.');
+            try {
+              setState(() {
+                _isImageReady = false;
+              });
+              appLogger.i('Successfully called setState in microtask after image error.');
+            } catch (e) {
+              // 【改動】如果加了微任務還是出錯，捕獲並記錄
+              appLogger.e('Error calling setState in microtask after image error: $e');
+            }
           });
-          appLogger.e('Error loading image for sharing: $exception');
+
+          // 【改動】在原始回呼的最後記錄原始錯誤
+          appLogger.e('Original Error loading image for sharing: $exception');
         },
       ),
     );
@@ -179,13 +246,18 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
 
   @override
   void dispose() {
-    // 移除圖片流的監聽器，防止內存洩漏
-    _imageStream?.removeListener(
-      ImageStreamListener(
-        (info, sync) {}, // 提供空的呼叫回以正確移除監聽器
-        onError: (dynamic exception, StackTrace? stackTrace) {}, // 提供空的呼叫回
-      ),
-    );
+    // 【改動】在銷毀過程開始時設定旗標
+    _isDisposing = true;
+    // 【改動】移除圖片流的監聽器，防止內存洩漏，並檢查 _imageStream 是否為 null
+    if (_imageStream != null) {
+      _imageStream?.removeListener(
+        ImageStreamListener(
+              (info, sync) {},
+          onError: (dynamic exception, StackTrace? stackTrace) {},
+        ),
+      );
+      _imageStream = null; // 【改動】設置為 null
+    }
     super.dispose();
   }
 
@@ -210,22 +282,23 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
               children: [
                 InkWell(
                   onTap: () {
+                    if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder:
                             (context) => Container(
-                              color: Theme.of(context).colorScheme.surface,
-                              child: PhotoView(
-                                imageProvider: CachedNetworkImageProvider(
-                                  widget.animeItem.img.startsWith('http')
-                                      ? widget.animeItem.img
-                                      : '$imageBaseUrl${widget.animeItem.img}',
-                                ),
-                                minScale: PhotoViewComputedScale.contained * 0.8,
-                                maxScale: PhotoViewComputedScale.covered * 2,
-                              ),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: PhotoView(
+                            imageProvider: CachedNetworkImageProvider(
+                              widget.animeItem.img.startsWith('http')
+                                  ? widget.animeItem.img
+                                  : '$imageBaseUrl${widget.animeItem.img}',
                             ),
+                            minScale: PhotoViewComputedScale.contained * 0.8,
+                            maxScale: PhotoViewComputedScale.covered * 2,
+                          ),
+                        ),
                       ),
                     );
                   },
@@ -236,12 +309,17 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                       borderRadius: BorderRadius.circular(4.0),
                       child: CachedNetworkImage(
                         imageUrl:
-                            widget.animeItem.img.startsWith('http')
-                                ? widget.animeItem.img
-                                : '$imageBaseUrl${widget.animeItem.img}',
+                        widget.animeItem.img.startsWith('http')
+                            ? widget.animeItem.img
+                            : '$imageBaseUrl${widget.animeItem.img}',
                         fit: BoxFit.cover,
                         placeholder: (context, url) => const AppLoadingIndicator(),
-                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                        errorWidget:
+                            (context, url, error) => Icon(
+                          Icons.error,
+                          color: Theme.of(context).colorScheme.error,
+                          size: Theme.of(context).textTheme.headlineLarge?.fontSize ?? 20,
+                        ),
                       ),
                     ),
                   ),
@@ -263,6 +341,7 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                       const SizedBox(height: 4.0),
                       InkWell(
                         onTap: () async {
+                          if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
                           final Uri url = Uri.parse(widget.animeItem.official);
                           if (!await launchUrl(url)) {
                             ToastUtils.showShortToastError(context, '無法開啟網址');
@@ -281,10 +360,11 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                         children: [
                           IconButton(
                             icon:
-                                _favorite
-                                    ? Icon(Icons.favorite, color: Colors.red)
-                                    : Icon(Icons.favorite_border, color: Colors.red),
+                            _favorite
+                                ? Icon(Icons.favorite, color: Colors.red)
+                                : Icon(Icons.favorite_border, color: Colors.red),
                             onPressed: () {
+                              if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
                               setState(() {
                                 _favorite = !_favorite;
                               });
@@ -296,17 +376,18 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                             icon: Icon(
                               Icons.share,
                               color:
-                                  _isImageReady
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey,
+                              _isImageReady
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey,
                             ),
                             tooltip: '分享動漫資訊',
                             onPressed:
-                                _isImageReady
-                                    ? () {
-                                      _shareAnimeDetails(context);
-                                    }
-                                    : null,
+                            _isImageReady
+                                ? () {
+                              if(!mounted || _isDisposing) return; // 【改動】在方法開頭檢查 isDisposing
+                              _shareAnimeDetails(context);
+                            }
+                                : null,
                           ),
                         ],
                       ),
