@@ -31,14 +31,13 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
 
   @override
   void dispose() {
-    // 2. 在 Widget (State) 被銷毀時，必須釋放 TextEditingController
-    // 這樣可以避免內存洩漏
+    // 在 Widget (State) 被銷毀時，必須釋放 TextEditingController，避免內存洩漏
     _textController.dispose();
     super.dispose();
   }
 
   // 處理按鈕點擊事件的方法
-  Future<void> _queryMyAnimeList(context) async {
+  Future<void> _queryMyAnimeList(BuildContext context) async {
     try {
       if (_loading || !mounted) return;
       setState(() {
