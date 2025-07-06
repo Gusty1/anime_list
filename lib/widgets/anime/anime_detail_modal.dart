@@ -7,7 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart'; // 注意，您使用了 image_gallery_saver_plus
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:typed_data';
 import '../../providers/year_month_provider.dart';
 import '../../models/anime_item.dart';
@@ -19,18 +20,20 @@ import '../toast_utils.dart';
 
 // 請求儲存圖片的權限
 Future<bool> requestSavePermission() async {
-  final status = await Permission.photos.request(); // 首先請求照片權限
+  final androidInfo = await DeviceInfoPlugin().androidInfo;
+  final sdkInt = androidInfo.version.sdkInt;
 
-  if (status.isGranted) {
-    return true; // 如果權限已授予，直接返回 true
-  } else if (status.isPermanentlyDenied) {
-    // 如果權限被永久拒絕（通常是使用者多次拒絕或勾選「不再詢問」），
-    // 則引導使用者前往應用程式設定手動開啟
-    openAppSettings();
+  if (sdkInt >= 33) {
+    // Android 13+ 使用 READ_MEDIA_IMAGES 權限
+    final status = await Permission.photos.request();
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) openAppSettings();
     return false;
   } else {
-    // 如果權限被拒絕但不是永久拒絕（例如，使用者第一次拒絕），
-    // 則不跳轉設定頁面，讓使用者下次可以再次嘗試或等待系統提示
+    // Android 12 以下使用舊的 STORAGE 權限
+    final status = await Permission.storage.request();
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) openAppSettings();
     return false;
   }
 }
