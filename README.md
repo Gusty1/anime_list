@@ -18,6 +18,8 @@
 
 ## TODO
 
+原本有想到可以做個小工具之類的，但後來問AI發現要做的話需要寫kotlin/java，只靠flutter是做不到的，至少目前是做不到，因此作罷
+
 - [ ] 上架google play
 要上架google play要有人幫忙測試，SO 如果覺得這個APP有用的話請聯繫我(<a0985209465@gmail.com>)，我會給你google play測試連結，幫忙增加測試人數，感謝!!!
 
