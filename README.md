@@ -5,6 +5,13 @@
 本APP不是看動畫的，就只是單純的展示各種動畫播出資訊而已
 理論上只要`Anime List`還有在更新他的資料，我的APP也會跟著更新，但是他有些資料沒有寫播出時間，我的APP就會把它過濾掉
 
+## 程式截圖
+
+![anime_list1](./images/anime_list1.jpg)
+![anime_list2](./images/anime_list2.jpg)
+![anime_list3](./images/anime_list3.jpg)
+![anime_list4](./images/anime_list4.jpg)
+
 ## 功能
 
 - 查看各種動畫的播出資訊，日期、原作、季數...
