@@ -1,22 +1,25 @@
 import 'dart:io';
-import 'dart:typed_data'; // 用於處理 Uint8List 圖片資料
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:feedback/feedback.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import '../constants.dart';
-import './my_drawer.dart';
-import '../utils/logger.dart';
-import '../../widgets/toast_utils.dart';
+import 'package:anime_list/constants.dart';
+import 'package:anime_list/widgets/my_drawer.dart';
+import 'package:anime_list/utils/logger.dart';
+import 'package:anime_list/widgets/toast_utils.dart';
 
-// 提供一個包含 AppBar、抽屜和回饋按鈕的通用頁面結構
+/// 通用頁面骨架封裝
+///
+/// 提供一致的 AppBar（含回饋按鈕）、左側 Drawer 導航，
+/// 以及可選的底部導覽列和浮動按鈕。
 class MyScaffoldWrapper extends StatelessWidget {
-  final String title; // 畫面的標題
-  final Widget body; // 畫面的主要內容
-  final Widget? bottomNavigationBar; // (可選) 底部導覽列
-  final Widget? floatingActionButton; // (可選) 浮動操作按鈕
+  final String title;
+  final Widget body;
+  final Widget? bottomNavigationBar;
+  final Widget? floatingActionButton;
 
   const MyScaffoldWrapper({
     super.key,
@@ -26,38 +29,32 @@ class MyScaffoldWrapper extends StatelessWidget {
     this.floatingActionButton,
   });
 
-  // 處理使用者回饋，並透過電子郵件發送
-  // 將主要邏輯拆分，提高可讀性和可維護性
+  /// 處理使用者回饋，透過電子郵件發送
   Future<void> _sendFeedbackByEmail({
     required UserFeedback feedback,
     required BuildContext context,
   }) async {
-    // 在異步操作開始前先檢查 context 是否仍掛載在畫面上
     if (!context.mounted) return;
 
-    String? attachmentPath; // 儲存截圖的暫存檔案路徑
+    String? attachmentPath;
 
     try {
-      // 如果有截圖，則創建暫存檔案
+      // 儲存截圖到暫存檔案
       if (feedback.screenshot.isNotEmpty) {
         attachmentPath = await _createScreenshotFile(feedback.screenshot);
       }
 
-      // 準備並發送郵件
-      final Email email = Email(
-        body: feedback.text, // 使用者輸入的文字
-        subject: emailSubject, // 從 constants.dart 來的郵件主旨
-        recipients: [emailAddress], // 從 constants.dart 來的收件人
-        // 如果成功創建了截圖檔案，就將其路徑加入附件
+      final email = Email(
+        body: feedback.text,
+        subject: emailSubject,
+        recipients: [emailAddress],
         attachmentPaths: attachmentPath != null ? [attachmentPath] : [],
-        isHTML: false, // 郵件內容為純文字
+        isHTML: false,
       );
 
-      // 呼叫 flutter_email_sender 套件，開啟郵件 App
       await FlutterEmailSender.send(email);
-      appLogger.i('回饋郵件已轉交郵件客戶端。');
+      appLogger.d('回饋郵件已轉交郵件客戶端');
 
-      // 發送成功後，如果 context 仍然有效，則顯示提示
       if (context.mounted) {
         ToastUtils.showShortToast(context, '回饋郵件成功寄出！');
       }
@@ -73,35 +70,33 @@ class MyScaffoldWrapper extends StatelessWidget {
     }
   }
 
-  // 私有輔助函式：將截圖數據寫入暫存檔
+  /// 將截圖寫入暫存檔案
   Future<String?> _createScreenshotFile(Uint8List screenshotBytes) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      // 使用時間戳確保檔案名稱的唯一性
       final filePath = path.join(
         tempDir.path,
         'feedback_${DateTime.now().microsecondsSinceEpoch}.png',
       );
       final file = File(filePath);
       await file.writeAsBytes(screenshotBytes);
-      appLogger.i('截圖已儲存至暫存檔案: $filePath');
+      appLogger.d('截圖已儲存至暫存檔案: $filePath');
       return filePath;
     } catch (e) {
       appLogger.e('儲存截圖至暫存檔案時發生錯誤: $e');
-      return null; // 發生錯誤時返回 null
+      return null;
     }
   }
 
-  // 私有輔助函式：刪除指定的暫存檔案
+  /// 刪除暫存截圖檔案
   Future<void> _deleteTempFile(String filePath) async {
     try {
       final file = File(filePath);
       if (await file.exists()) {
         await file.delete();
-        appLogger.i('暫存截圖檔案已刪除: $filePath');
+        appLogger.d('暫存截圖檔案已刪除: $filePath');
       }
     } catch (e) {
-      // 即使刪除失敗，也只是記錄日誌，不影響使用者操作
       appLogger.w('刪除暫存截圖檔案失敗: $e');
     }
   }
@@ -113,13 +108,11 @@ class MyScaffoldWrapper extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(title, style: Theme.of(context).textTheme.titleLarge),
         centerTitle: true,
-        // 標題右側放置回饋 (bug report) 按鈕
         actions: <Widget>[
+          // 回饋按鈕
           IconButton(
             onPressed: () {
-              // 顯示回饋視窗，並將使用者輸入的結果傳遞給我們的處理函式
               BetterFeedback.of(context).show((UserFeedback feedback) {
-                // 不需要 async，因為 _sendFeedbackByEmail 本身就是 Future
                 _sendFeedbackByEmail(feedback: feedback, context: context);
               });
             },
@@ -127,7 +120,7 @@ class MyScaffoldWrapper extends StatelessWidget {
           ),
         ],
       ),
-      drawer: const MyDrawer(), // 建議加上 const
+      drawer: const MyDrawer(),
       body: body,
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,

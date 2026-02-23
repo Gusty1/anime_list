@@ -1,12 +1,11 @@
-// 定義動漫名言的model
+/// 一言（Hitokoto）API 回傳的資料模型
+/// 用於在首頁顯示隨機動漫名言
 class Hitokoto {
   final int id;
   final String uuid;
   final String hitokoto;
   final String type;
   final String from;
-
-  // from_who 可能是 null，所以使用 String? (nullable String)
   final String? fromWho;
   final String creator;
   final int creatorUid;
@@ -15,14 +14,13 @@ class Hitokoto {
   final String createdAt;
   final int length;
 
-  // 構造函數
-  Hitokoto({
+  const Hitokoto({
     required this.id,
     required this.uuid,
     required this.hitokoto,
     required this.type,
     required this.from,
-    required this.fromWho, // fromWho 可能是 null
+    required this.fromWho,
     required this.creator,
     required this.creatorUid,
     required this.reviewer,
@@ -31,7 +29,7 @@ class Hitokoto {
     required this.length,
   });
 
-  // Factory 構造函數，用於從 JSON Map 創建 Hitokoto 實例
+  /// 從 API JSON 建立 Hitokoto 實例
   factory Hitokoto.fromJson(Map<String, dynamic> json) {
     return Hitokoto(
       id: json['id'] as int,
@@ -39,7 +37,6 @@ class Hitokoto {
       hitokoto: json['hitokoto'] as String,
       type: json['type'] as String,
       from: json['from'] as String,
-      // json['from_who'] 可能會是 null，這裡進行了處理
       fromWho: json['from_who'] as String?,
       creator: json['creator'] as String,
       creatorUid: json['creator_uid'] as int,
@@ -50,7 +47,7 @@ class Hitokoto {
     );
   }
 
-  // (可選) 將 Hitokoto 實例轉換為 JSON Map
+  /// 轉換為 JSON Map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -68,9 +65,20 @@ class Hitokoto {
     };
   }
 
-  // (可選) 方便除錯的 toString 方法
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Hitokoto &&
+        other.id == id &&
+        other.uuid == uuid &&
+        other.hitokoto == hitokoto;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, uuid, hitokoto);
+
   @override
   String toString() {
-    return 'Hitokoto(id: $id, uuid: $uuid, hitokoto: $hitokoto, type: $type, from: $from, fromWho: $fromWho, creator: $creator, creatorUid: $creatorUid, reviewer: $reviewer, commitFrom: $commitFrom, createdAt: $createdAt, length: $length)';
+    return 'Hitokoto(id: $id, hitokoto: $hitokoto, from: $from)';
   }
 }

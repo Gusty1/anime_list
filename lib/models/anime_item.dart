@@ -1,4 +1,7 @@
-// 定義動漫資訊的 Model 類別
+import 'package:anime_list/constants.dart';
+
+/// 動漫資訊的資料模型
+/// 用於存放從 API 或本地資料庫取得的動漫項目資訊
 class AnimeItem {
   final String name;
   final String date;
@@ -10,8 +13,7 @@ class AnimeItem {
   final String description;
   final String official;
 
-  // 構造函數
-  AnimeItem({
+  const AnimeItem({
     required this.name,
     required this.date,
     required this.time,
@@ -23,7 +25,34 @@ class AnimeItem {
     required this.official,
   });
 
-  // Factory 構造函數，用於從 JSON Map 創建 AnimeItem 實例
+  // ---------------------------------------------------------------------------
+  // 計算屬性 (Computed Getters)
+  // ---------------------------------------------------------------------------
+
+  /// 完整的圖片 URL，自動判斷是否需要加上基底路徑
+  String get fullImageUrl => img.startsWith('http') ? img : '$imageBaseUrl$img';
+
+  /// 將英文的原作類型轉換為中文顯示文字
+  String get displayCarrier {
+    switch (carrier) {
+      case 'Novel':
+        return '小說';
+      case 'Comic':
+        return '漫畫';
+      case 'Original':
+        return '原創';
+      case 'Game':
+        return '遊戲';
+      default:
+        return carrier;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 序列化 / 反序列化
+  // ---------------------------------------------------------------------------
+
+  /// 從 API 回傳的 JSON Map 建立 AnimeItem
   factory AnimeItem.fromJson(Map<String, dynamic> json) {
     return AnimeItem(
       name: json['name'] as String,
@@ -38,7 +67,7 @@ class AnimeItem {
     );
   }
 
-  // (可選) 將 AnimeItem 實例轉換為 JSON Map：新增 official 欄位
+  /// 轉換為 JSON Map（用於分享等場景）
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -53,6 +82,7 @@ class AnimeItem {
     };
   }
 
+  /// 從 SQLite 資料庫的 Map 建立 AnimeItem
   factory AnimeItem.fromMap(Map<String, dynamic> map) {
     return AnimeItem(
       name: map['name'] as String,
@@ -67,7 +97,7 @@ class AnimeItem {
     );
   }
 
-  // 將 AnimeItem 物件轉換為 資料庫 Map，以便插入或更新
+  /// 轉換為 SQLite 資料庫 Map（用於插入或更新）
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -82,9 +112,14 @@ class AnimeItem {
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // copyWith / 相等性 / toString
+  // ---------------------------------------------------------------------------
+
+  /// 複製並修改部分欄位的便捷方法
   AnimeItem copyWith({
     String? name,
-    String? date, // 這裡日期是可選的，以便只修改日期
+    String? date,
     String? time,
     String? carrier,
     String? season,
@@ -106,9 +141,41 @@ class AnimeItem {
     );
   }
 
-  // (可選) 方便除錯的 toString 方法：新增 official 欄位
+  /// 覆寫相等性判斷，配合 Riverpod 3 的 `==` 過濾機制
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AnimeItem &&
+        other.name == name &&
+        other.date == date &&
+        other.time == time &&
+        other.carrier == carrier &&
+        other.season == season &&
+        other.originalName == originalName &&
+        other.img == img &&
+        other.description == description &&
+        other.official == official;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      name,
+      date,
+      time,
+      carrier,
+      season,
+      originalName,
+      img,
+      description,
+      official,
+    );
+  }
+
   @override
   String toString() {
-    return 'AnimeItem(name: $name, date: $date, time: $time, carrier: $carrier, season: $season, originalName: $originalName, img: $img, description: $description, official: $official)';
+    return 'AnimeItem(name: $name, date: $date, time: $time, '
+        'carrier: $carrier, season: $season, originalName: $originalName, '
+        'img: $img, description: $description, official: $official)';
   }
 }

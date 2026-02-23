@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/favorite_refresh_provider.dart';
-import '../../services/anime_database_service.dart';
-import '../../models/anime_item.dart';
-import '../../widgets/anime/anime_list.dart';
-import '../../widgets/app_loading_indicator.dart';
-import '../../widgets/toast_utils.dart';
-import '../../utils/logger.dart';
+import 'package:anime_list/providers/favorite_provider.dart';
+import 'package:anime_list/widgets/anime/anime_list.dart';
+import 'package:anime_list/widgets/app_loading_indicator.dart';
+import 'package:anime_list/widgets/toast_utils.dart';
+import 'package:anime_list/utils/logger.dart';
 
+/// 收藏頁面
+///
+/// 使用 [favoriteProvider] (AsyncNotifierProvider) 管理收藏列表狀態，
+/// 支援搜尋、重新載入功能。
 class FavoriteMainScreen extends ConsumerStatefulWidget {
   const FavoriteMainScreen({super.key});
 
@@ -17,102 +19,55 @@ class FavoriteMainScreen extends ConsumerStatefulWidget {
 
 class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   final TextEditingController _textController = TextEditingController();
-  final dbService = AnimeDatabaseService();
-  bool _loading = false;
-  List<AnimeItem> _animeList = [];
 
-  int _totalAnimeCount = 0;
+  // 搜尋狀態
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _queryMyAnimeList(context);
+    // 每次進入收藏頁時自動重新載入資料
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(favoriteProvider);
+    });
   }
 
   @override
   void dispose() {
-    // 在 Widget (State) 被銷毀時，必須釋放 TextEditingController，避免內存洩漏
     _textController.dispose();
     super.dispose();
   }
 
-  // 處理按鈕點擊事件的方法
-  Future<void> _queryMyAnimeList(BuildContext context) async {
+  /// 執行搜尋查詢
+  Future<void> _search() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isSearching = true;
+    });
+
     try {
-      if (_loading || !mounted) return;
-      setState(() {
-        _loading = true;
-      });
-      final inputText = _textController.text;
-      List<AnimeItem> result = [];
-      if (inputText.trim().isEmpty) {
-        result = await dbService.getAllAnimeItems();
-      } else {
-        result = await dbService.searchAnimeItemsByName(inputText);
+      final query = _textController.text.trim();
+      final notifier = ref.read(favoriteProvider.notifier);
+      // 透過 Notifier 的 searchAndUpdate 方法更新 Provider 狀態
+      await notifier.searchAndUpdate(query);
+    } catch (e) {
+      appLogger.e('搜尋失敗: $e');
+      if (mounted) {
+        ToastUtils.showShortToastError(context, '搜尋失敗');
       }
-      result.sort((a, b) {
-        try {
-          // 解析項目 a 的日期和時間
-          final datePartsA = a.date.split('/');
-          final yearIntA = int.parse(datePartsA[0]);
-          final monthA = int.parse(datePartsA[1]);
-          final dayA = int.parse(datePartsA[2]);
-          final timePartsA = a.time.split(':');
-          final hourA = int.parse(timePartsA[0]);
-          final minuteA = int.parse(timePartsA[1]);
-          final dateTimeA = DateTime(yearIntA, monthA, dayA, hourA, minuteA);
-
-          // 解析項目 b 的日期和時間
-          final datePartsB = b.date.split('/');
-          final yearIntB = int.parse(datePartsB[0]);
-          final monthB = int.parse(datePartsB[1]);
-          final dayB = int.parse(datePartsB[2]);
-          final timePartsB = b.time.split(':');
-          final hourB = int.parse(timePartsB[0]);
-          final minuteB = int.parse(timePartsB[1]);
-          final dateTimeB = DateTime(yearIntB, monthB, dayB, hourB, minuteB);
-
-          return dateTimeB.compareTo(dateTimeA);
-        } catch (e) {
-          appLogger.e('錯誤: Sort - 處理日期/時間 "${a.name}" 失敗 - ${e.toString()}');
-          return 0; // 返回 0 表示相等，不改變相對順序
-        }
-      });
-
-      setState(() {
-        _animeList = result;
-        _loading = false;
-      });
-
-      if(_textController.text.isEmpty){
+    } finally {
+      if (mounted) {
         setState(() {
-          _totalAnimeCount = _animeList.length;
+          _isSearching = false;
         });
       }
-    } catch (e) {
-      appLogger.e('查詢失敗: $e');
-      ToastUtils.showShortToastError(context, '查詢失敗');
-    } finally {
-      setState(() {
-        _loading = false;
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<bool>(favoriteRefreshProvider, (previous, next) {
-      // 判斷布林值是否確實發生了變化
-      if (previous != next) {
-        _queryMyAnimeList(context);
-      }
-    });
-    String emptyText = '';
-    if (_animeList.isEmpty && _textController.text.isNotEmpty) {
-      emptyText = '找不到符合條件的動漫';
-    } else if (_animeList.isEmpty) {
-      emptyText = '尚未收藏任何動漫';
-    }
+    final favoriteAsync = ref.watch(favoriteProvider);
 
     return Container(
       padding: const EdgeInsets.all(5.0),
@@ -121,112 +76,130 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-              // 設定邊框
-              border: Border.all(color: Theme.of(context).colorScheme.surfaceTint, width: 2.0),
-              // 設定圓角
-              borderRadius: BorderRadius.circular(12.0),
-              color: Theme.of(context).colorScheme.surface,
+          // 搜尋欄
+          Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
             ),
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    enabled: !_loading ,
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      labelText: '請輸入動漫名稱',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.text, // 設置彈出的鍵盤類型 (text, number, emailAddress 等)
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6.0),
-                  child: IconButton(
-                    onPressed:
-                        !_loading
-                            ? () => _queryMyAnimeList(context)
-                            : null,
-                    icon: Icon(Icons.search),
-                    color: Theme.of(context).colorScheme.primary,
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>((
-                        Set<WidgetState> states,
-                      ) {
-                        // 根據按鈕狀態設置背景色
-                        if (states.contains(WidgetState.disabled)) {
-                          return Colors.grey; // 禁用時使用灰色
-                        }
-                        return Theme.of(context).colorScheme.secondaryContainer;
-                      }),
-                      foregroundColor: WidgetStateProperty.resolveWith<Color>((
-                        Set<WidgetState> states,
-                      ) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return Theme.of(context).colorScheme.onSurface; // 禁用時使用表面色對比色
-                        }
-                        return Theme.of(context).colorScheme.onSecondaryContainer; // 正常時使用次要容器色對比色
-                      }),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_animeList.isNotEmpty)
-            Center(
-              child: Text.rich(
-                TextSpan(
-                  text: '共收藏 ',
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: '$_totalAnimeCount',
-                      style: const TextStyle(color: Colors.lightBlue, fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: ' 部動漫'),
-                  ],
-                ),
-                // Text.rich 的 style 屬性設定了整個 TextSpan 樹的基礎樣式
-                // 子 TextSpan 的 style 會覆蓋這裡的設定
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-          if (_loading)
-            Expanded(child: const AppLoadingIndicator())
-          else if (_animeList.isEmpty) // 如果載入完成但列表為空
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Row(
                 children: [
-                  Icon(
-                    Icons.insert_emoticon,
-                    color: Theme.of(context).colorScheme.secondary,
-                    size: 60,
-                  ),
-                  Center(
-                    child: Text(
-                      emptyText,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: TextField(
+                      enabled: !_isSearching,
+                      controller: _textController,
+                      decoration: const InputDecoration(
+                        hintText: '搜尋收藏的動漫...',
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        filled: false,
                       ),
+                      keyboardType: TextInputType.text,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton.filledTonal(
+                      onPressed: !_isSearching ? _search : null,
+                      icon: const Icon(Icons.search),
+                      tooltip: '搜尋',
                     ),
                   ),
                 ],
               ),
-            )
-          else
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => _queryMyAnimeList(context),
-                child: AnimeList(animeList: _animeList),
-              ),
             ),
+          ),
+
+          // 收藏列表（使用 AsyncValue.when 處理狀態）
+          favoriteAsync.when(
+            loading: () => const Expanded(child: AppLoadingIndicator()),
+            error:
+                (err, stack) => Expanded(
+                  child: Center(
+                    child: Text(
+                      '載入收藏失敗: $err',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ),
+            data: (animeList) {
+              // 空狀態提示
+              if (animeList.isEmpty) {
+                final emptyText =
+                    _textController.text.isNotEmpty ? '找不到符合條件的動漫' : '尚未收藏任何動漫';
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.insert_emoticon,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 60,
+                      ),
+                      Center(
+                        child: Text(
+                          emptyText,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize:
+                                Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium?.fontSize,
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // 有資料
+              return Expanded(
+                child: Column(
+                  children: [
+                    Center(
+                      child: Text.rich(
+                        TextSpan(
+                          text: '共收藏 ',
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '${animeList.length}',
+                              style: const TextStyle(
+                                color: Colors.lightBlue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const TextSpan(text: ' 部動漫'),
+                          ],
+                        ),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          // 清空搜尋欄並重新載入全量資料
+                          _textController.clear();
+                          await ref.read(favoriteProvider.notifier).refresh();
+                        },
+                        child: AnimeList(animeList: animeList),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

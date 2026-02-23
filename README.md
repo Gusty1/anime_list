@@ -18,16 +18,16 @@
 - 收藏動畫
 - 點擊動畫封面可以保存圖片
 
-## 開發工具
-
-- flutter: go_router、dio...
-- sqlite: 儲存收藏的動畫
-
 ## TODO
 
 - [ ] 上架google play
-要上架google play要有人幫忙測試，SO 如果覺得這個APP有用的話請聯繫我(<a0985209465@gmail.com>)，我會給你google play測試連結，幫忙增加測試人數，感謝!!!
+  要上架google play要有人幫忙測試，如果覺得這個APP有用的話請聯繫我(<a0985209465@gmail.com>)
+  ，我會給你google play測試連結，幫忙增加測試人數，感謝!!!
 
 - [ ] 收集意見，如果你有任何建議、問題都歡迎提出
 
 - [ ] 桌面小工具
+
+## 其他
+
+提醒我自己，google play 頁面上線後記得來`update_checker.dart`調整更新的url網址

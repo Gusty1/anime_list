@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import '../constants.dart';
-import '../utils/logger.dart';
+import 'package:anime_list/constants.dart';
+import 'package:anime_list/utils/logger.dart';
 
 // 網路請求工具dio的設定
 class DioClient {
@@ -35,7 +35,10 @@ class DioClient {
           appLogger.i('└─────────────────────────');
           return handler.next(options);
         },
-        onResponse: (Response response, ResponseInterceptorHandler handler) {
+        onResponse: (
+          Response<dynamic> response,
+          ResponseInterceptorHandler handler,
+        ) {
           appLogger.i('┌────── Dio Response ──────');
           appLogger.i('│ Status Code: ${response.statusCode}');
           // 避免打印過大的響應數據，特別是在生產環境
@@ -56,7 +59,8 @@ class DioClient {
           if (e.response != null) {
             appLogger.e('│ Response Status: ${e.response?.statusCode}');
             // 錯誤響應數據，也避免打印過大
-            if (e.response?.data != null && e.response!.data.toString().length < 1000) {
+            if (e.response?.data != null &&
+                e.response!.data.toString().length < 1000) {
               appLogger.e('│ Response Data: ${e.response?.data}');
             } else {
               appLogger.e('│ Response Data: (數據過大或為空)');
@@ -77,6 +81,6 @@ class DioClient {
   // 可選：如果你需要在應用程式關閉時關閉 Dio (雖然通常不強制，但對於某些場景可能有用)
   void close({bool force = false}) {
     _dio.close(force: force);
-    appLogger.i("Dio client closed");
+    appLogger.i('Dio client closed');
   }
 }

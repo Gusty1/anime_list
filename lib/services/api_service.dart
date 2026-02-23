@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import '../models/hitokoto.dart';
-import '../models/anime_item.dart';
-import '../utils/logger.dart';
-import '../constants.dart';
+import 'package:anime_list/models/hitokoto.dart';
+import 'package:anime_list/models/anime_item.dart';
+import 'package:anime_list/utils/logger.dart';
+import 'package:anime_list/constants.dart';
 // import 'dart:developer' as developer; // AI說:雖然用了 logger，但保留 developer 導入以防萬一或作為對比
 
 // api相關服務
@@ -16,7 +16,7 @@ class ApiService {
   Future<Hitokoto?> fetchHitokoto() async {
     try {
       // GET 請求動漫名言 API
-      final Response response = await _dio.get(hitokotoApiUrl);
+      final Response<dynamic> response = await _dio.get(hitokotoApiUrl);
       if (response.statusCode == 200) {
         // 檢查響應數據是否是 Map
         if (response.data is Map<String, dynamic>) {
@@ -24,12 +24,16 @@ class ApiService {
           return Hitokoto.fromJson(response.data as Map<String, dynamic>);
         } else {
           // 如果數據格式不符合預期，記錄警告
-          appLogger.w('Unexpected response data format for Hitokoto: ${response.data}');
+          appLogger.w(
+            'Unexpected response data format for Hitokoto: ${response.data}',
+          );
           return null;
         }
       } else {
         // 記錄非 200 狀態碼的錯誤
-        appLogger.w('Error fetching Hitokoto: Status code ${response.statusCode}');
+        appLogger.w(
+          'Error fetching Hitokoto: Status code ${response.statusCode}',
+        );
         return null;
       }
     } on DioException catch (e) {
@@ -48,22 +52,31 @@ class ApiService {
   Future<List<AnimeItem>?> fetchAnimeInfoByYearMonth(String yearMonth) async {
     try {
       // GET 請求動漫資訊 API
-      final Response response = await _dio.get('$animeInfoBaseUrl$yearMonth.json');
+      final Response<dynamic> response = await _dio.get(
+        '$animeInfoBaseUrl$yearMonth.json',
+      );
       if (response.statusCode == 200) {
         // 檢查響應數據是否是 List
-        if (response.data is List) {
+        if (response.data is List<dynamic>) {
           // 使用 AnimeItem.fromJson 解析響應數據
-          return response.data
-              .map<AnimeItem>((item) => AnimeItem.fromJson(item as Map<String, dynamic>))
+          final List<dynamic> dataList = response.data as List<dynamic>;
+          return dataList
+              .map<AnimeItem>(
+                (item) => AnimeItem.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         } else {
           // 如果數據格式不符合預期，記錄警告
-          appLogger.w('Unexpected response data format for AnimeItem: ${response.data}');
+          appLogger.w(
+            'Unexpected response data format for AnimeItem: ${response.data}',
+          );
           return null;
         }
       } else {
         // 記錄非 200 狀態碼的錯誤
-        appLogger.w('Error fetching AnimeItem: Status code ${response.statusCode}');
+        appLogger.w(
+          'Error fetching AnimeItem: Status code ${response.statusCode}',
+        );
         return null;
       }
     } on DioException catch (e) {
@@ -73,7 +86,10 @@ class ApiService {
       return null;
     } catch (e) {
       // 記錄其他未知錯誤
-      appLogger.e('Unexpected error during fetchAnimeInfoByYearMonth:', error: e);
+      appLogger.e(
+        'Unexpected error during fetchAnimeInfoByYearMonth:',
+        error: e,
+      );
       return null;
     }
   }

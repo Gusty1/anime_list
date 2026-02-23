@@ -1,5 +1,5 @@
 name: anime_list
-description: "Show Anime List"
+description: 'Show Anime List'
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.1+5
+version: 1.2.0+6
 
 environment:
   sdk: ^3.7.0
@@ -33,36 +33,36 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  go_router: ^16.0.0
-  flex_color_scheme: ^8.2.0
-  dio: ^5.8.0+1
-  logger: ^2.5.0
-  auto_size_text: ^3.0.0
-  flutter_spinkit: ^5.2.1
-  shared_preferences: ^2.5.3
-  toggle_switch: ^2.3.0
-  flutter_native_splash: ^2.4.6
-  package_info_plus: ^8.3.0
-  connectivity_plus: ^6.1.4
-  url_launcher: ^6.3.1
-  fluttertoast: ^8.2.12
-  flutter_riverpod: ^2.6.1
+  go_router: ^17.1.0
+  flex_color_scheme: ^8.4.0
+  dio: ^5.9.1
+  logger: ^2.6.2
+  google_fonts: ^8.0.2
+  flutter_spinkit: ^5.2.2
+  shared_preferences: ^2.5.4
+  flutter_native_splash: ^2.4.7
+  package_info_plus: ^9.0.0
+  connectivity_plus: ^7.0.0
+  url_launcher: ^6.3.2
+  fluttertoast: ^9.0.0
+  flutter_riverpod: ^3.2.1
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
   convex_bottom_bar: ^3.2.0
   contained_tab_bar_view: ^0.8.0
-  share_plus: ^11.0.0
-  feedback: ^3.1.0
-  flutter_email_sender: ^7.0.0
+  share_plus: ^12.0.1
+  feedback: ^3.2.0
+  flutter_email_sender: ^8.0.0
   path_provider: ^2.1.5
-  material_symbols_icons: ^4.2815.0
-  photo_view: ^0.15.0
+  material_symbols_icons: ^4.2906.0
+  easy_image_viewer: ^1.5.1
   sqflite: ^2.4.2
   path: ^1.9.1
-  http: ^1.4.0
-  flutter_launcher_icons: ^0.14.3
+  http: ^1.6.0
+  flutter_launcher_icons: ^0.14.4
   permission_handler: ^12.0.1
   image_gallery_saver_plus: ^4.0.1
-  device_info_plus: ^11.5.0
+  device_info_plus: ^12.3.0
 
 dev_dependencies:
   flutter_test:
@@ -82,11 +82,11 @@ flutter_launcher_icons:
   # 指定是否為 Android 生成圖標 (設為 true)
   android: true
   ios: false
-  image_path: "assets/icon.png"
+  image_path: 'assets/icon.png'
 
 # flutter_native_splash設定，就是等待載入時的畫面
 flutter_native_splash:
-  color: "#bec2c4" # 你的背景顏色 (Hex 格式)
+  color: '#bec2c4' # 你的背景顏色 (Hex 格式)
   image: assets/splash_image.png # 你的 Splash Image 檔案路徑
 
   # 可選：額外設定
@@ -104,7 +104,6 @@ flutter_native_splash:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

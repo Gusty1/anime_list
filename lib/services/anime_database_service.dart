@@ -1,11 +1,12 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/anime_item.dart';
+import 'package:anime_list/models/anime_item.dart';
 
 // sqlite的相關服務
 class AnimeDatabaseService {
   // 單例模式
-  static final AnimeDatabaseService _instance = AnimeDatabaseService._internal();
+  static final AnimeDatabaseService _instance =
+      AnimeDatabaseService._internal();
 
   factory AnimeDatabaseService() => _instance;
 
@@ -73,7 +74,11 @@ class AnimeDatabaseService {
 
   Future<int> insertAnimeItem(AnimeItem item) async {
     final db = await _getDatabase();
-    return await db.insert(_tableName, item.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
+    return await db.insert(
+      _tableName,
+      item.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
   }
 
   Future<AnimeItem?> getAnimeItemByName(String animeName) async {

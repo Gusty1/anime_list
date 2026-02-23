@@ -1,40 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../constants.dart';
+import 'package:anime_list/constants.dart';
 
-//我的左側抽屜導航widget
+/// 左側抽屜導航元件
+///
+/// 包含 App 名稱標題頭部和首頁、收藏、設定三個導航入口。
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
-      child: ListView(
-        // 修改 padding 屬性，在頂部添加狀態列高度的內距，不然會頂到最上面的狀態列
-        padding: EdgeInsets.only(top: mediaQuery.padding.top), // 只在頂部添加內距
-        children: <Widget>[
-          // 各個導航項目
+      child: Column(
+        children: [
+          // 抽屜頂部標題區
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorScheme.primaryContainer, colorScheme.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.movie_filter,
+                    size: 48,
+                    color: colorScheme.onPrimary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    appTitle,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '探索每季新番動畫',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 導航項目
           ListTile(
-            leading: Icon(Icons.home),
+            leading: const Icon(Icons.home_outlined),
             title: Text('首頁', style: Theme.of(context).textTheme.titleMedium),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
             onTap: () {
               GoRouter.of(context).go(homeRoute);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(favoriteTitle, style: Theme.of(context).textTheme.titleMedium),
+            leading: const Icon(Icons.favorite_outline),
+            title: Text(
+              favoriteTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
             onTap: () {
               GoRouter.of(context).go(favoriteRoute);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text(settingsTitle, style: Theme.of(context).textTheme.titleMedium),
+            leading: const Icon(Icons.settings_outlined),
+            title: Text(
+              settingsTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
             onTap: () {
               GoRouter.of(context).go(settingsRoute);
               Navigator.pop(context);
