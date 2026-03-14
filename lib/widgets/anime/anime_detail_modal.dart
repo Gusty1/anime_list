@@ -136,7 +136,7 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
     final imageUrl = widget.animeItem.fullImageUrl;
     final shareText = [
       '${widget.animeItem.name} (${widget.animeItem.originalName})',
-      "首播時間: '$year${widget.animeItem.date} ${widget.animeItem.time}",
+      '首播時間: $year${widget.animeItem.date} ${widget.animeItem.time}',
       '${widget.animeItem.displayCarrier} / ${widget.animeItem.season}',
       if (widget.animeItem.official.isNotEmpty)
         '官方網站: ${widget.animeItem.official}',
@@ -229,8 +229,6 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
 
