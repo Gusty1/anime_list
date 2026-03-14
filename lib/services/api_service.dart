@@ -3,8 +3,6 @@ import 'package:anime_list/models/hitokoto.dart';
 import 'package:anime_list/models/anime_item.dart';
 import 'package:anime_list/utils/logger.dart';
 import 'package:anime_list/constants.dart';
-// import 'dart:developer' as developer; // AI說:雖然用了 logger，但保留 developer 導入以防萬一或作為對比
-
 // api相關服務
 class ApiService {
   final Dio _dio; // ApiService 依賴於 Dio 實例

@@ -4,7 +4,6 @@ import 'package:contained_tab_bar_view/contained_tab_bar_view.dart';
 import 'package:anime_list/providers/anime_list_provider.dart';
 import 'package:anime_list/providers/year_month_provider.dart';
 import 'package:anime_list/widgets/app_loading_indicator.dart';
-import 'package:anime_list/screens/error_screen.dart';
 import 'package:anime_list/utils/date_helper.dart';
 import 'package:anime_list/widgets/anime/anime_list.dart';
 
@@ -122,7 +121,25 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
           ),
         );
       },
-      error: (err, stack) => Center(child: ErrorScreen(error: err.toString())),
+      error: (err, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 60),
+            const SizedBox(height: 12),
+            Text(
+              '載入失敗',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              err.toString(),
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

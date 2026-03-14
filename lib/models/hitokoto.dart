@@ -42,7 +42,7 @@ class Hitokoto {
       creatorUid: json['creator_uid'] as int,
       reviewer: json['reviewer'] as int,
       commitFrom: json['commit_from'] as String,
-      createdAt: json['created_at'] as String,
+      createdAt: json['created_at'].toString(),
       length: json['length'] as int,
     );
   }

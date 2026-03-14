@@ -9,9 +9,8 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
   final rawStream = Connectivity().onConnectivityChanged;
 
   return rawStream.map((results) {
-    if (results.isNotEmpty) {
-      return results.first;
-    }
-    return ConnectivityResult.none;
+    // 過濾掉 none，取第一個有效連線方式；全部都是 none 才視為斷線
+    final active = results.where((r) => r != ConnectivityResult.none);
+    return active.isNotEmpty ? active.first : ConnectivityResult.none;
   });
 });

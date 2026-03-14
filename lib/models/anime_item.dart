@@ -55,15 +55,15 @@ class AnimeItem {
   /// 從 API 回傳的 JSON Map 建立 AnimeItem
   factory AnimeItem.fromJson(Map<String, dynamic> json) {
     return AnimeItem(
-      name: json['name'] as String,
-      date: json['date'] as String,
-      time: json['time'] as String,
-      carrier: json['carrier'] as String,
-      season: json['season'] != null ? json['season'].toString() : '',
-      originalName: json['originalName'] as String,
-      img: json['img'] as String,
-      description: json['description'] as String,
-      official: json['official'] != null ? json['official'] as String : '',
+      name: (json['name'] as String?) ?? '',
+      date: (json['date'] as String?) ?? '',
+      time: (json['time'] as String?) ?? '',
+      carrier: (json['carrier'] as String?) ?? '',
+      season: json['season']?.toString() ?? '',
+      originalName: (json['originalName'] as String?) ?? '',
+      img: (json['img'] as String?) ?? '',
+      description: (json['description'] as String?) ?? '',
+      official: json['official']?.toString() ?? '',
     );
   }
 
@@ -85,15 +85,15 @@ class AnimeItem {
   /// 從 SQLite 資料庫的 Map 建立 AnimeItem
   factory AnimeItem.fromMap(Map<String, dynamic> map) {
     return AnimeItem(
-      name: map['name'] as String,
-      date: map['date'] as String,
-      time: map['time'] as String,
-      carrier: map['carrier'] as String,
-      season: map['season'] != null ? map['season'].toString() : '',
-      originalName: map['originalName'] as String,
-      img: map['img'] as String,
-      description: map['description'] as String,
-      official: map['official'] != null ? map['official'].toString() : '',
+      name: (map['name'] as String?) ?? '',
+      date: (map['date'] as String?) ?? '',
+      time: (map['time'] as String?) ?? '',
+      carrier: (map['carrier'] as String?) ?? '',
+      season: map['season']?.toString() ?? '',
+      originalName: (map['originalName'] as String?) ?? '',
+      img: (map['img'] as String?) ?? '',
+      description: (map['description'] as String?) ?? '',
+      official: map['official']?.toString() ?? '',
     );
   }
 

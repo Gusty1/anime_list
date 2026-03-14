@@ -63,8 +63,8 @@ class MyDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
             ),
             onTap: () {
-              GoRouter.of(context).go(homeRoute);
               Navigator.pop(context);
+              GoRouter.of(context).go(homeRoute);
             },
           ),
           ListTile(
@@ -77,8 +77,8 @@ class MyDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
             ),
             onTap: () {
-              GoRouter.of(context).go(favoriteRoute);
               Navigator.pop(context);
+              GoRouter.of(context).go(favoriteRoute);
             },
           ),
           ListTile(
@@ -91,8 +91,8 @@ class MyDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
             ),
             onTap: () {
-              GoRouter.of(context).go(settingsRoute);
               Navigator.pop(context);
+              GoRouter.of(context).go(settingsRoute);
             },
           ),
         ],

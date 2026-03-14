@@ -35,8 +35,8 @@ class UpdateChecker {
   ///
   /// 回傳 [UpdateInfo]，若檢查失敗則回傳 null。
   static Future<UpdateInfo?> checkForUpdate() async {
+    final dio = Dio();
     try {
-      final dio = Dio();
       final response = await dio.get<Map<String, dynamic>>(
         _apiUrl,
         options: Options(
@@ -73,6 +73,8 @@ class UpdateChecker {
       }
     } catch (e) {
       appLogger.e('檢查更新失敗: $e');
+    } finally {
+      dio.close();
     }
     return null;
   }

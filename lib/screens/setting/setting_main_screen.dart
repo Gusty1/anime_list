@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:anime_list/constants.dart';
 import 'package:anime_list/providers/anime_database_provider.dart';
+import 'package:anime_list/providers/favorite_provider.dart';
 import 'package:anime_list/services/update_checker.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
 import 'package:anime_list/widgets/setting/theme_switch.dart';
@@ -100,6 +101,7 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
               onPressed: () async {
                 final dbService = ref.read(animeDatabaseServiceProvider);
                 await dbService.clearAllAnimeItems();
+                ref.invalidate(favoriteProvider);
                 if (dialogContext.mounted) {
                   ToastUtils.showShortToast(dialogContext, '清除成功');
                   Navigator.of(dialogContext).pop();
