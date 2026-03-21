@@ -10,6 +10,7 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:typed_data';
 import 'package:anime_list/providers/year_month_provider.dart';
+import 'package:anime_list/providers/favorite_provider.dart';
 import 'package:anime_list/models/anime_item.dart';
 import 'package:anime_list/widgets/app_loading_indicator.dart';
 import 'package:anime_list/utils/logger.dart';
@@ -89,13 +90,11 @@ Future<void> handleImageLongPress(
 /// 點擊封面圖使用 [EasyImageViewer] 在 overlay 中全螢幕放大，無需切換頁面。
 class AnimeDetailModal extends ConsumerStatefulWidget {
   final AnimeItem animeItem;
-  final bool favorite;
   final VoidCallback toggleFavorite;
 
   const AnimeDetailModal({
     super.key,
     required this.animeItem,
-    required this.favorite,
     required this.toggleFavorite,
   });
 
@@ -104,24 +103,7 @@ class AnimeDetailModal extends ConsumerStatefulWidget {
 }
 
 class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
-  late bool _isFavorite;
   bool _isSharing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isFavorite = widget.favorite;
-  }
-
-  @override
-  void didUpdateWidget(covariant AnimeDetailModal oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.favorite != oldWidget.favorite) {
-      setState(() {
-        _isFavorite = widget.favorite;
-      });
-    }
-  }
 
   /// 分享動漫詳細資訊（含圖片）
   Future<void> _shareAnimeDetails() async {
@@ -200,6 +182,10 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
 
   @override
   Widget build(BuildContext context) {
+    // 從 Provider 讀取收藏狀態，與 AnimeCard 共用同一資料源，確保一致性
+    final isFavorite = ref.watch(favoritedNamesProvider).contains(
+      widget.animeItem.name,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final imageUrl = widget.animeItem.fullImageUrl;
@@ -287,7 +273,7 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                     ),
 
                     // ── 底部操作列 ──
-                    _buildActionBar(colorScheme),
+                    _buildActionBar(colorScheme, isFavorite),
                   ],
                 ),
               ),
@@ -489,28 +475,26 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
   }
 
   /// 底部操作列
-  Widget _buildActionBar(ColorScheme colorScheme) {
+  ///
+  /// [isFavorite] 來自 [favoritedNamesProvider]，與 AnimeCard 共享同一狀態，
+  /// 不再自行維護本地副本，消除 DB 操作失敗時的狀態不一致問題。
+  Widget _buildActionBar(ColorScheme colorScheme, bool isFavorite) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // 收藏按鈕
+          // 收藏按鈕：直接委託 AnimeCard 的 toggleFavorite，由 Provider 更新狀態
           IconButton.filledTonal(
             icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              isFavorite ? Icons.favorite : Icons.favorite_border,
               color:
-                  _isFavorite
+                  isFavorite
                       ? Colors.redAccent
                       : colorScheme.onSecondaryContainer,
             ),
-            onPressed: () {
-              setState(() {
-                _isFavorite = !_isFavorite;
-              });
-              widget.toggleFavorite();
-            },
-            tooltip: _isFavorite ? '取消收藏' : '收藏動漫',
+            onPressed: widget.toggleFavorite,
+            tooltip: isFavorite ? '取消收藏' : '收藏動漫',
           ),
           const SizedBox(width: 8),
 

@@ -9,8 +9,10 @@ import 'package:anime_list/constants.dart';
 class YearListCard extends StatelessWidget {
   const YearListCard({super.key});
 
-  /// 產生年份列表（由新到舊排序）
-  List<int> _getYears() {
+  /// 年份列表（由新到舊排序），App 生命週期內只計算一次
+  static final List<int> _years = _buildYears();
+
+  static List<int> _buildYears() {
     final int currentYear = DateTime.now().year;
     return List.generate(
       currentYear - startYear + 1,
@@ -20,7 +22,7 @@ class YearListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final years = _getYears();
+    final years = _years;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(

@@ -6,7 +6,14 @@ import 'package:anime_list/widgets/anime/anime_card.dart';
 class AnimeList extends StatelessWidget {
   final List<AnimeItem> animeList;
 
-  const AnimeList({super.key, required this.animeList});
+  /// 是否為收藏頁視圖，傳遞給 [AnimeCard] 控制日期前綴顯示。
+  final bool isFavoriteView;
+
+  const AnimeList({
+    super.key,
+    required this.animeList,
+    this.isFavoriteView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,11 @@ class AnimeList extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = animeList[index];
         // 動畫卡片
-        return AnimeCard(key: ValueKey(item.name), animeItem: item);
+        return AnimeCard(
+          key: ValueKey(item.name),
+          animeItem: item,
+          isFavoriteView: isFavoriteView,
+        );
       },
     );
   }

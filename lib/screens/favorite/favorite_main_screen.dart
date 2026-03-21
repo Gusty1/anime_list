@@ -140,7 +140,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.insert_emoticon,
+                        Icons.favorite_border,
                         color: Theme.of(context).colorScheme.secondary,
                         size: 60,
                       ),
@@ -192,7 +192,10 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                           _textController.clear();
                           await ref.read(favoriteProvider.notifier).refresh();
                         },
-                        child: AnimeList(animeList: animeList),
+                        child: AnimeList(
+                          animeList: animeList,
+                          isFavoriteView: true,
+                        ),
                       ),
                     ),
                   ],

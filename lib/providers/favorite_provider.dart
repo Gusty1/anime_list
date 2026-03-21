@@ -66,3 +66,16 @@ final favoriteProvider =
     AsyncNotifierProvider<FavoriteNotifier, List<AnimeItem>>(
       () => FavoriteNotifier(),
     );
+
+/// 已收藏動畫名稱的快取 Set
+///
+/// 供 [AnimeCard] 直接查詢收藏狀態，避免每張卡片各自發出獨立 DB 查詢（N+1 問題）。
+/// 當 [favoriteProvider] 更新時，此 Provider 會自動失效並重新計算。
+final favoritedNamesProvider = Provider<Set<String>>((ref) {
+  final favoriteAsync = ref.watch(favoriteProvider);
+  return favoriteAsync.when(
+    data: (list) => list.map((item) => item.name).toSet(),
+    loading: () => const <String>{},
+    error: (_, _) => const <String>{},
+  );
+});

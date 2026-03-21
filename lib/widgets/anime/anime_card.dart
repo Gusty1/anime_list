@@ -16,38 +16,39 @@ import 'package:anime_list/widgets/toast_utils.dart';
 class AnimeCard extends ConsumerStatefulWidget {
   final AnimeItem animeItem;
 
-  const AnimeCard({super.key, required this.animeItem});
+  /// 是否為收藏頁視圖。
+  ///
+  /// `true` 時日期已包含年份（YYYY/MM/DD），不顯示「首播時間」前綴；
+  /// `false`（預設）時為列表頁格式（MM/DD），加上前綴以提示語境。
+  final bool isFavoriteView;
+
+  const AnimeCard({
+    super.key,
+    required this.animeItem,
+    this.isFavoriteView = false,
+  });
 
   @override
   ConsumerState<AnimeCard> createState() => _AnimeCardState();
 }
 
 class _AnimeCardState extends ConsumerState<AnimeCard> {
-  bool _favorite = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // 透過 Provider 取得 DB Service，查詢收藏狀態
-    final dbService = ref.read(animeDatabaseServiceProvider);
-    dbService.getAnimeItemByName(widget.animeItem.name).then((value) {
-      if (mounted) {
-        setState(() {
-          _favorite = value != null;
-        });
-      }
-    });
-  }
-
   /// 切換收藏狀態（新增或取消收藏）
+  ///
+  /// 收藏狀態由 [favoritedNamesProvider] 統一管理，
+  /// 操作完成後透過 [ref.invalidate] 通知所有相依 Widget 重建，
+  /// 不再維護本地 _favorite 欄位，消除 N+1 DB 查詢問題。
   Future<void> _toggleFavorite() async {
     if (!mounted) return;
 
+    final isFavorite = ref.read(favoritedNamesProvider).contains(
+      widget.animeItem.name,
+    );
     final currentYearMonth = ref.read(yearMonthProvider);
     final dbService = ref.read(animeDatabaseServiceProvider);
     int result = 0;
 
-    if (_favorite) {
+    if (isFavorite) {
       // 目前已收藏 → 取消收藏
       result = await dbService.deleteAnimeItemByName(widget.animeItem.name);
     } else {
@@ -61,34 +62,35 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
 
     if (result > 0) {
       if (!mounted) return;
-      ToastUtils.showShortToast(context, _favorite ? '取消收藏成功' : '收藏成功');
-      setState(() {
-        _favorite = !_favorite;
-      });
-      // 通知收藏列表 Provider 重新載入
+      ToastUtils.showShortToast(context, isFavorite ? '取消收藏成功' : '收藏成功');
+      // 通知收藏列表 Provider 重新載入，favoritedNamesProvider 會自動跟著更新
       ref.invalidate(favoriteProvider);
-    } else if (result == 0 && !_favorite) {
-      // 資料已存在，同步收藏狀態
-      setState(() {
-        _favorite = true;
-      });
+    } else if (result == 0 && !isFavorite) {
+      // 資料已存在（ConflictAlgorithm.ignore），強制重新同步 Provider
+      ref.invalidate(favoriteProvider);
     } else {
       if (!mounted) return;
       ToastUtils.showShortToastError(context, '發生錯誤');
     }
   }
 
-  /// 組合日期顯示文字（依格式自動加前綴）
+  /// 組合日期顯示文字
+  ///
+  /// 列表頁（[isFavoriteView] == false）加「首播時間」前綴；
+  /// 收藏頁（[isFavoriteView] == true）直接顯示完整日期，語境已明確。
   String get _dateDisplayText {
     final date = widget.animeItem.date;
     final time = widget.animeItem.time;
-    // MM/DD（列表頁）→ 加「首播時間」前綴；YYYY/MM/DD（收藏頁）→ 直接顯示
-    final prefix = date.split('/').length == 2 ? '首播時間: ' : '';
+    final prefix = widget.isFavoriteView ? '' : '首播時間: ';
     return '$prefix$date $time';
   }
 
   @override
   Widget build(BuildContext context) {
+    // 從 Provider 讀取收藏狀態，避免個別 DB 查詢
+    final isFavorite = ref.watch(favoritedNamesProvider).contains(
+      widget.animeItem.name,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -106,7 +108,6 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
             builder: (BuildContext dialogContext) {
               return AnimeDetailModal(
                 animeItem: widget.animeItem,
-                favorite: _favorite,
                 toggleFavorite: _toggleFavorite,
               );
             },
@@ -158,9 +159,9 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            _favorite ? Icons.favorite : Icons.favorite_border,
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
                             color:
-                                _favorite
+                                isFavorite
                                     ? Colors.redAccent
                                     : colorScheme.onSurfaceVariant,
                             size: 20,

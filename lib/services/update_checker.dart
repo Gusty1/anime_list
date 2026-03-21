@@ -33,11 +33,14 @@ class UpdateChecker {
 
   /// 檢查是否有新版本
   ///
+  /// [dio] 由呼叫端注入（通常傳入 `dioClientProvider` 的實例），
+  /// 避免每次呼叫都建立新的 Dio 物件並繞過統一的 interceptor 設定。
   /// 回傳 [UpdateInfo]，若檢查失敗則回傳 null。
-  static Future<UpdateInfo?> checkForUpdate() async {
-    final dio = Dio();
+  static Future<UpdateInfo?> checkForUpdate({Dio? dio}) async {
+    final client = dio ?? Dio();
+    final shouldClose = dio == null; // 只有自建的才需要自己關閉
     try {
-      final response = await dio.get<Map<String, dynamic>>(
+      final response = await client.get<Map<String, dynamic>>(
         _apiUrl,
         options: Options(
           headers: {'Accept': 'application/vnd.github.v3+json'},
@@ -74,7 +77,7 @@ class UpdateChecker {
     } catch (e) {
       appLogger.e('檢查更新失敗: $e');
     } finally {
-      dio.close();
+      if (shouldClose) client.close();
     }
     return null;
   }

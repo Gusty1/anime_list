@@ -80,7 +80,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (state.uri.toString() != noNetwork) {
         try {
           final connectivityResult = await Connectivity().checkConnectivity();
-          if (connectivityResult.isEmpty) {
+          // connectivity_plus 7.x 回傳 List<ConnectivityResult>，
+          // [ConnectivityResult.none] 不是空列表，必須用 every() 判斷所有介面均為 none
+          final hasNoNetwork = connectivityResult.every(
+            (r) => r == ConnectivityResult.none,
+          );
+          if (hasNoNetwork) {
             appLogger.d('應用程式啟動時無網路，導向 /no-network');
             return noNetwork;
           }

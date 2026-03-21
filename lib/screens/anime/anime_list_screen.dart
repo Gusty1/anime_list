@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:contained_tab_bar_view/contained_tab_bar_view.dart';
+import 'package:anime_list/models/anime_item.dart';
 import 'package:anime_list/providers/anime_list_provider.dart';
 import 'package:anime_list/providers/year_month_provider.dart';
 import 'package:anime_list/widgets/app_loading_indicator.dart';
@@ -24,7 +25,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
   int _currentTabIndex = 0;
 
   /// Tab 索引 (0=日, 1=一...) 到 DateTime.weekday 的映射
-  final List<int> _indexToWeekday = [
+  static const List<int> _indexToWeekday = [
     DateTime.sunday,
     DateTime.monday,
     DateTime.tuesday,
@@ -33,6 +34,10 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
     DateTime.friday,
     DateTime.saturday,
   ];
+
+  /// 7 個 Tab 的過濾結果快取，只在 animeList 改變時重新計算
+  List<List<AnimeItem>>? _cachedFilteredLists;
+  List<AnimeItem>? _lastAnimeList;
 
   @override
   void initState() {
@@ -92,19 +97,25 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
           );
         }
 
+        // 只有在 animeList 資料真正改變時才重新計算所有 7 個 Tab 的過濾結果
+        if (!identical(_lastAnimeList, animeList)) {
+          _lastAnimeList = animeList;
+          _cachedFilteredLists = List.generate(tabs.length, (index) {
+            return DateHelper.filterByWeekday(
+              animeList,
+              _indexToWeekday[index],
+              widget.year,
+            );
+          });
+        }
+        final filteredLists = _cachedFilteredLists!;
+
         return ContainedTabBarView(
           initialIndex: _currentTabIndex,
           onChange: _onTabChanged,
           tabs: tabs,
           views: List.generate(tabs.length, (index) {
-            final weekday = _indexToWeekday[index];
-            // 使用 DateHelper 集中的過濾與排序邏輯
-            final filteredList = DateHelper.filterByWeekday(
-              animeList,
-              weekday,
-              widget.year,
-            );
-            return AnimeList(animeList: filteredList);
+            return AnimeList(animeList: filteredLists[index]);
           }),
           tabBarProperties: TabBarProperties(
             background: Container(
@@ -136,6 +147,13 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
               err.toString(),
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            // 讓使用者主動重試，避免只能靠切換 Tab 或重新進入頁面
+            ElevatedButton.icon(
+              onPressed: () => ref.invalidate(animeListByYearMonthProvider),
+              icon: const Icon(Icons.refresh),
+              label: const Text('重新載入'),
             ),
           ],
         ),

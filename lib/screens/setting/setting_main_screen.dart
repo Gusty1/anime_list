@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:anime_list/constants.dart';
 import 'package:anime_list/providers/anime_database_provider.dart';
+import 'package:anime_list/providers/api_provider.dart';
 import 'package:anime_list/providers/favorite_provider.dart';
 import 'package:anime_list/services/update_checker.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
@@ -61,7 +62,8 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
     });
 
     try {
-      final updateInfo = await UpdateChecker.checkForUpdate();
+      final dio = ref.read(dioClientProvider).dio;
+      final updateInfo = await UpdateChecker.checkForUpdate(dio: dio);
 
       if (!mounted) return;
 

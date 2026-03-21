@@ -9,14 +9,24 @@ import 'package:anime_list/utils/logger.dart';
 /// 監聽網路狀態變化的外層 Widget
 ///
 /// 包裝在 [MaterialApp] 的 builder 中，當網路斷線時自動導航至無網路頁面，
-/// 網路恢復時返回首頁。透過 [routerProvider] 取得 GoRouter 實例（不再使用全域變數）。
-class ConnectivityWatcher extends ConsumerWidget {
+/// 網路恢復時返回斷線前的原始頁面（而非固定跳回首頁）。
+/// 透過 [routerProvider] 取得 GoRouter 實例。
+class ConnectivityWatcher extends ConsumerStatefulWidget {
   final Widget child;
 
   const ConnectivityWatcher({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConnectivityWatcher> createState() =>
+      _ConnectivityWatcherState();
+}
+
+class _ConnectivityWatcherState extends ConsumerState<ConnectivityWatcher> {
+  /// 斷線前所在的頁面 URI，用於網路恢復後導回原位
+  String _previousUri = homeRoute;
+
+  @override
+  Widget build(BuildContext context) {
     ref.listen<AsyncValue<ConnectivityResult>>(connectivityProvider, (
       previous,
       next,
@@ -31,13 +41,15 @@ class ConnectivityWatcher extends ConsumerWidget {
 
           if (status == ConnectivityResult.none) {
             if (currentUri != noNetwork) {
-              appLogger.d('網路中斷，導航到無網路頁面');
+              // 記錄斷線前的位置，以便恢復後返回
+              _previousUri = currentUri;
+              appLogger.d('網路中斷，記錄位置 $_previousUri，導航到無網路頁面');
               goRouter.go(noNetwork);
             }
           } else {
             if (currentUri == noNetwork) {
-              appLogger.d('網路恢復，返回首頁');
-              goRouter.go(homeRoute);
+              appLogger.d('網路恢復，返回原始頁面: $_previousUri');
+              goRouter.go(_previousUri);
             }
           }
         },
@@ -50,6 +62,6 @@ class ConnectivityWatcher extends ConsumerWidget {
       );
     });
 
-    return child;
+    return widget.child;
   }
 }

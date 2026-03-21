@@ -2,17 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:anime_list/models/anime_item.dart';
 
-// sqlite的相關服務
+/// SQLite 收藏資料庫服務
+///
+/// 生命週期完全交由 [animeDatabaseServiceProvider]（keepAlive: true）管理，
+/// 不再自行維護靜態 Singleton，方便測試時注入 mock 實例。
 class AnimeDatabaseService {
-  // 單例模式
-  static final AnimeDatabaseService _instance =
-      AnimeDatabaseService._internal();
-
-  factory AnimeDatabaseService() => _instance;
-
-  AnimeDatabaseService._internal(); // 私有建構子
-
-  static Database? _database;
+  Database? _database;
 
   static const String _dbName = 'anime_database.db';
 
@@ -21,7 +16,6 @@ class AnimeDatabaseService {
   static const String _tableName = 'anime_items';
 
   static const String name = 'name'; // TEXT PRIMARY KEY
-  static const String year = 'year'; // INTEGER
   static const String date = 'date'; // TEXT
   static const String time = 'time'; // TEXT
   static const String carrier = 'carrier'; // TEXT
@@ -59,7 +53,6 @@ class AnimeDatabaseService {
     await db.execute('''
       CREATE TABLE $_tableName (
         $name TEXT PRIMARY KEY, -- 使用 name 常數
-        $year INTEGER, -- 使用 year 常數
         $date TEXT, -- 使用 date 常數
         $time TEXT, -- 使用 time 常數
         $carrier TEXT, -- 使用 carrier 常數

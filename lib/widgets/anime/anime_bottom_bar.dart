@@ -42,7 +42,7 @@ class _AnimeBottomBarState extends ConsumerState<AnimeBottomBar> {
         TabItem(icon: Symbols.ac_unit, title: '冬番'),
         TabItem(icon: Symbols.nest_eco_leaf, title: '春番'),
         TabItem(icon: Symbols.beach_access, title: '夏番'),
-        TabItem(icon: Symbols.cannabis, title: '秋番'),
+        TabItem(icon: Symbols.eco, title: '秋番'),
       ],
       height: 60.0,
       initialActiveIndex: _selectedIndex,

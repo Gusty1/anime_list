@@ -6,6 +6,7 @@ import 'package:anime_list/services/preferences_service.dart';
 import 'package:anime_list/services/update_checker.dart';
 import 'package:anime_list/providers/theme_provider.dart';
 import 'package:anime_list/providers/router_provider.dart';
+import 'package:anime_list/providers/api_provider.dart';
 import 'package:anime_list/widgets/connectivity_watcher.dart';
 import 'package:feedback/feedback.dart';
 import 'package:flutter/services.dart';
@@ -65,7 +66,8 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   /// 啟動時自動檢查更新
   Future<void> _checkUpdateOnStartup() async {
-    final updateInfo = await UpdateChecker.checkForUpdate();
+    final dio = ref.read(dioClientProvider).dio;
+    final updateInfo = await UpdateChecker.checkForUpdate(dio: dio);
     if (updateInfo != null && updateInfo.hasUpdate) {
       final ctx = navigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:anime_list/constants.dart';
 import 'package:anime_list/utils/logger.dart';
 
@@ -16,63 +17,63 @@ class DioClient {
       ),
     );
 
-    // 添加攔截器，使用 appLogger 進行日誌記錄
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (RequestOptions options, RequestInterceptorHandler handler) {
-          appLogger.i('┌────── Dio Request ──────');
-          appLogger.i('│ Method: ${options.method}');
-          appLogger.i('│ URL: ${options.uri}');
-          appLogger.i('│ Headers: ${options.headers}');
-          if (options.data != null) {
-            // 檢查是否是 FormData，FormData 不需要打印整個 content
-            if (options.data is FormData) {
-              appLogger.d('│ Data: FormData (包含文件)');
-            } else {
-              appLogger.d('│ Data: ${options.data}');
+    // Debug 模式下才加入詳細日誌攔截器，Release 模式完全跳過，避免字串序列化開銷
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (
+            RequestOptions options,
+            RequestInterceptorHandler handler,
+          ) {
+            appLogger.i('┌────── Dio Request ──────');
+            appLogger.i('│ Method: ${options.method}');
+            appLogger.i('│ URL: ${options.uri}');
+            appLogger.i('│ Headers: ${options.headers}');
+            if (options.data != null) {
+              if (options.data is FormData) {
+                appLogger.d('│ Data: FormData (包含文件)');
+              } else {
+                appLogger.d('│ Data: ${options.data}');
+              }
             }
-          }
-          appLogger.i('└─────────────────────────');
-          return handler.next(options);
-        },
-        onResponse: (
-          Response<dynamic> response,
-          ResponseInterceptorHandler handler,
-        ) {
-          appLogger.i('┌────── Dio Response ──────');
-          appLogger.i('│ Status Code: ${response.statusCode}');
-          // 避免打印過大的響應數據，特別是在生產環境
-          if (response.data != null && response.data.toString().length < 1000) {
-            // 限制打印長度
-            appLogger.i('│ Data: ${response.data}');
-          } else {
-            appLogger.i('│ Data: (數據過大或為空)');
-          }
-          appLogger.i('└──────────────────────────');
-          return handler.next(response);
-        },
-        onError: (DioException e, ErrorInterceptorHandler handler) {
-          appLogger.e('┌────── Dio Error ──────');
-          appLogger.e('│ Type: ${e.type}');
-          appLogger.e('│ Message: ${e.message}');
-          appLogger.e('│ Path: ${e.requestOptions.uri}');
-          if (e.response != null) {
-            appLogger.e('│ Response Status: ${e.response?.statusCode}');
-            // 錯誤響應數據，也避免打印過大
-            if (e.response?.data != null &&
-                e.response!.data.toString().length < 1000) {
-              appLogger.e('│ Response Data: ${e.response?.data}');
+            appLogger.i('└─────────────────────────');
+            return handler.next(options);
+          },
+          onResponse: (
+            Response<dynamic> response,
+            ResponseInterceptorHandler handler,
+          ) {
+            appLogger.i('┌────── Dio Response ──────');
+            appLogger.i('│ Status Code: ${response.statusCode}');
+            if (response.data != null &&
+                response.data.toString().length < 1000) {
+              appLogger.i('│ Data: ${response.data}');
             } else {
-              appLogger.e('│ Response Data: (數據過大或為空)');
+              appLogger.i('│ Data: (數據過大或為空)');
             }
-          }
-          appLogger.e('└─────────────────────');
-
-          // 可以根據錯誤類型或狀態碼決定是否繼續處理錯誤
-          return handler.next(e); // 繼續處理錯誤，或根據需要 resolve/reject
-        },
-      ),
-    );
+            appLogger.i('└──────────────────────────');
+            return handler.next(response);
+          },
+          onError: (DioException e, ErrorInterceptorHandler handler) {
+            appLogger.e('┌────── Dio Error ──────');
+            appLogger.e('│ Type: ${e.type}');
+            appLogger.e('│ Message: ${e.message}');
+            appLogger.e('│ Path: ${e.requestOptions.uri}');
+            if (e.response != null) {
+              appLogger.e('│ Response Status: ${e.response?.statusCode}');
+              if (e.response?.data != null &&
+                  e.response!.data.toString().length < 1000) {
+                appLogger.e('│ Response Data: ${e.response?.data}');
+              } else {
+                appLogger.e('│ Response Data: (數據過大或為空)');
+              }
+            }
+            appLogger.e('└─────────────────────');
+            return handler.next(e);
+          },
+        ),
+      );
+    }
   }
 
   // 提供 Dio 實例的 getter
