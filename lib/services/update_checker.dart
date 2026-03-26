@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -27,10 +29,6 @@ class UpdateChecker {
   static const String _apiUrl =
       'https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest';
 
-  // TODO: Google Play 正式上架後，將 showUpdateDialog 的連結改為下方 Play Store 連結
-  // static const String _playStoreUrl =
-  //     'https://play.google.com/store/apps/details?id=你的.package.id';
-
   /// 檢查是否有新版本
   ///
   /// [dio] 由呼叫端注入（通常傳入 `dioClientProvider` 的實例），
@@ -58,7 +56,11 @@ class UpdateChecker {
         );
         final String htmlUrl = data['html_url'] as String? ?? '';
 
-        final packageInfo = await PackageInfo.fromPlatform();
+        // 加入逾時保護，避免特定 Android 裝置上 PackageInfo 掛起
+        final packageInfo = await PackageInfo.fromPlatform().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => throw TimeoutException('PackageInfo.fromPlatform() timed out'),
+        );
         final currentVersion = packageInfo.version;
 
         final hasUpdate = _isNewerVersion(tagName, currentVersion);

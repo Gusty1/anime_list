@@ -122,80 +122,83 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // 主題切換
         const ThemeSwitch(),
-
         const Divider(indent: 16, endIndent: 16),
-
-        // 清除資料
-        ListTile(
-          leading: Icon(Icons.delete_outline, color: colorScheme.error),
-          title: const Text('清除收藏資料'),
-          subtitle: const Text('刪除所有已收藏的動漫'),
-          onTap: () => _showClearDataDialog(context),
-        ),
-
+        _buildDataSection(context),
         const Divider(indent: 16, endIndent: 16),
-
-        // 致謝文字與連結
-        ListTile(
-          leading: Icon(Icons.info_outline, color: colorScheme.primary),
-          title: const Text('關於'),
-          subtitle: RichText(
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              children: <TextSpan>[
-                const TextSpan(text: '本 APP 是模仿'),
-                TextSpan(
-                  text: '這個網站',
-                  style: TextStyle(
-                    color: colorScheme.primary,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer:
-                      TapGestureRecognizer()..onTap = () => _launchUrl(context),
-                ),
-                const TextSpan(text: '製作的\n感謝該網站提供的資料 (･ω´･ )'),
-              ],
-            ),
-          ),
-          isThreeLine: true,
-        ),
-
+        _buildAboutSection(context),
         const Divider(indent: 16, endIndent: 16),
-
-        // 版本資訊 + 檢查更新
-        ListTile(
-          leading: Icon(Icons.info_outline, color: colorScheme.primary),
-          title: Text(
-            'v${_packageInfo?.version ?? loadingMessage}',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          subtitle: const Text('點擊檢查更新'),
-          trailing:
-              _isCheckingUpdate
-                  ? SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.primary,
-                    ),
-                  )
-                  : Icon(
-                    Icons.system_update_outlined,
-                    color: colorScheme.primary,
-                  ),
-          onTap: _isCheckingUpdate ? null : _checkUpdate,
-        ),
+        _buildUpdateSection(context),
       ],
+    );
+  }
+
+  /// 清除資料區塊
+  Widget _buildDataSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.delete_outline, color: colorScheme.error),
+      title: const Text('清除收藏資料'),
+      subtitle: const Text('刪除所有已收藏的動漫'),
+      onTap: () => _showClearDataDialog(context),
+    );
+  }
+
+  /// 關於區塊（致謝與網站連結）
+  Widget _buildAboutSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.info_outline, color: colorScheme.primary),
+      title: const Text('關於'),
+      subtitle: RichText(
+        text: TextSpan(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          children: <TextSpan>[
+            const TextSpan(text: '本 APP 是模仿'),
+            TextSpan(
+              text: '這個網站',
+              style: TextStyle(
+                color: colorScheme.primary,
+                decoration: TextDecoration.underline,
+              ),
+              recognizer:
+                  TapGestureRecognizer()..onTap = () => _launchUrl(context),
+            ),
+            const TextSpan(text: '製作的\n感謝該網站提供的資料 (･ω´･ )'),
+          ],
+        ),
+      ),
+      isThreeLine: true,
+    );
+  }
+
+  /// 版本資訊與更新區塊
+  Widget _buildUpdateSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.info_outline, color: colorScheme.primary),
+      title: Text(
+        'v${_packageInfo?.version ?? loadingMessage}',
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      subtitle: const Text('點擊檢查更新'),
+      trailing:
+          _isCheckingUpdate
+              ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colorScheme.primary,
+                ),
+              )
+              : Icon(Icons.system_update_outlined, color: colorScheme.primary),
+      onTap: _isCheckingUpdate ? null : _checkUpdate,
     );
   }
 }

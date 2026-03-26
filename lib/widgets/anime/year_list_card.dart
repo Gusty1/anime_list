@@ -12,6 +12,9 @@ class YearListCard extends StatelessWidget {
   /// 年份列表（由新到舊排序），App 生命週期內只計算一次
   static final List<int> _years = _buildYears();
 
+  /// 卡片漸變透明度步距（每往後一張卡片，左側漸層不透明度遞減此值）
+  static const double _opacityStep = 0.04;
+
   static List<int> _buildYears() {
     final int currentYear = DateTime.now().year;
     return List.generate(
@@ -32,7 +35,7 @@ class YearListCard extends StatelessWidget {
         itemBuilder: (context, index) {
           final int year = years[index];
           // 依據索引微調色調，讓卡片有視覺漸變
-          final double opacity = 1.0 - (index * 0.04).clamp(0.0, 0.4);
+          final double opacity = 1.0 - (index * _opacityStep).clamp(0.0, 0.4);
 
           return Card(
             elevation: 3,

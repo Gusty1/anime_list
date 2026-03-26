@@ -29,6 +29,9 @@ class FavoriteNotifier extends AsyncNotifier<List<AnimeItem>> {
     return result;
   }
 
+  /// 搜尋關鍵字最大長度
+  static const int _maxQueryLength = 100;
+
   /// 根據關鍵字搜尋並更新 Provider 狀態
   Future<void> searchAndUpdate(String query) async {
     state = const AsyncValue.loading();
@@ -36,14 +39,23 @@ class FavoriteNotifier extends AsyncNotifier<List<AnimeItem>> {
   }
 
   /// 根據關鍵字搜尋收藏
+  ///
+  /// 傳入的 [query] 若超過 [_maxQueryLength] 字元，會自動截斷，
+  /// 防止異常長度輸入對 SQLite LIKE 查詢造成效能影響。
   Future<List<AnimeItem>> search(String query) async {
+    // 截斷過長的輸入，防止異常查詢
+    final safeQuery =
+        query.length > _maxQueryLength
+            ? query.substring(0, _maxQueryLength)
+            : query;
+
     final dbService = ref.read(animeDatabaseServiceProvider);
     List<AnimeItem> result;
 
-    if (query.trim().isEmpty) {
+    if (safeQuery.trim().isEmpty) {
       result = await dbService.getAllAnimeItems();
     } else {
-      result = await dbService.searchAnimeItemsByName(query);
+      result = await dbService.searchAnimeItemsByName(safeQuery);
     }
 
     // 依日期時間由新到舊排序

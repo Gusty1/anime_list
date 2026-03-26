@@ -9,6 +9,12 @@ import 'package:anime_list/widgets/app_loading_indicator.dart';
 import 'package:anime_list/widgets/anime/anime_detail_modal.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
 
+/// 封面圖寬度
+const double _coverWidth = 130.0;
+
+/// 封面圖高度
+const double _coverHeight = 180.0;
+
 /// 動畫卡片元件
 ///
 /// 顯示單一動畫項目的資訊（封面圖、名稱、播出時間等），
@@ -60,14 +66,16 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
       result = await dbService.insertAnimeItem(newItem);
     }
 
-    if (result > 0) {
-      if (!mounted) return;
-      ToastUtils.showShortToast(context, isFavorite ? '取消收藏成功' : '收藏成功');
+    // result > 0：操作成功；result == 0 && !isFavorite：資料已存在（ConflictAlgorithm.ignore）
+    // 兩種情況都需要重新同步 Provider，僅操作成功時才顯示提示
+    final shouldRefresh = result > 0 || (result == 0 && !isFavorite);
+    if (shouldRefresh) {
       // 通知收藏列表 Provider 重新載入，favoritedNamesProvider 會自動跟著更新
       ref.invalidate(favoriteProvider);
-    } else if (result == 0 && !isFavorite) {
-      // 資料已存在（ConflictAlgorithm.ignore），強制重新同步 Provider
-      ref.invalidate(favoriteProvider);
+      if (result > 0) {
+        if (!mounted) return;
+        ToastUtils.showShortToast(context, isFavorite ? '取消收藏成功' : '收藏成功');
+      }
     } else {
       if (!mounted) return;
       ToastUtils.showShortToastError(context, '發生錯誤');
@@ -120,8 +128,8 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
             children: [
               // ── 左側封面圖（含收藏愛心 overlay）──
               SizedBox(
-                width: 130,
-                height: 180,
+                width: _coverWidth,
+                height: _coverHeight,
                 child: Stack(
                   children: [
                     // 封面圖
@@ -150,23 +158,9 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
                     Positioned(
                       top: 4,
                       right: 4,
-                      child: GestureDetector(
+                      child: _FavoriteOverlayButton(
+                        isFavorite: isFavorite,
                         onTap: _toggleFavorite,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 0.75),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color:
-                                isFavorite
-                                    ? Colors.redAccent
-                                    : colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -260,6 +254,40 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 封面圖右上角收藏愛心按鈕
+///
+/// 封裝半透明圓形背景與愛心圖示，將愛心 overlay 邏輯從 [AnimeCard]
+/// 的巢狀結構中獨立出來，降低 [AnimeCard.build] 的巢狀深度。
+class _FavoriteOverlayButton extends StatelessWidget {
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  const _FavoriteOverlayButton({
+    required this.isFavorite,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.75),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isFavorite ? Icons.favorite : Icons.favorite_border,
+          color: isFavorite ? Colors.redAccent : colorScheme.onSurfaceVariant,
+          size: 20,
         ),
       ),
     );

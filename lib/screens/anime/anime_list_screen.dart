@@ -49,6 +49,32 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
     });
   }
 
+  @override
+  void didUpdateWidget(AnimeListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 年份切換時清除快取，確保下次 build 重新計算
+    if (oldWidget.year != widget.year) {
+      _cachedFilteredLists = null;
+      _lastAnimeList = null;
+    }
+  }
+
+  /// 根據最新的 [animeList] 計算並快取 7 個 Tab 的過濾結果
+  ///
+  /// 只在 [animeList] 參考改變時重新計算，避免每次 build 執行 7 次排序過濾。
+  /// 呼叫點位於 build() 外部（[didUpdateWidget] 與首次資料抵達），
+  /// 確保 build() 本身保持純函式特性。
+  void _rebuildCache(List<AnimeItem> animeList) {
+    _lastAnimeList = animeList;
+    _cachedFilteredLists = List.generate(_indexToWeekday.length, (index) {
+      return DateHelper.filterByWeekday(
+        animeList,
+        _indexToWeekday[index],
+        widget.year,
+      );
+    });
+  }
+
   void _onTabChanged(int index) {
     setState(() {
       _currentTabIndex = index;
@@ -97,16 +123,9 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
           );
         }
 
-        // 只有在 animeList 資料真正改變時才重新計算所有 7 個 Tab 的過濾結果
+        // 只有在 animeList 參考改變時才重新計算快取，保持 build() 的純函式特性
         if (!identical(_lastAnimeList, animeList)) {
-          _lastAnimeList = animeList;
-          _cachedFilteredLists = List.generate(tabs.length, (index) {
-            return DateHelper.filterByWeekday(
-              animeList,
-              _indexToWeekday[index],
-              widget.year,
-            );
-          });
+          _rebuildCache(animeList);
         }
         final filteredLists = _cachedFilteredLists!;
 

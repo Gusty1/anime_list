@@ -75,7 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
 
-    // 應用程式啟動時檢查網路狀態，無網路時導向無網路頁面
+    // NOTE: 網路狀態管理採用雙層機制，各司其職：
+    //   1. 這裡的 redirect（啟動時）：App 冷啟動時執行一次，確保首頁有網路才渲染內容。
+    //   2. ConnectivityWatcher（運行時）：監聽 Stream，在 App 使用中斷線時即時跳轉。
+    // 兩套機制刻意並存，請勿刪除其中一套，否則會有其中一個場景的網路處理缺失。
     redirect: (context, state) async {
       if (state.uri.toString() != noNetwork) {
         try {

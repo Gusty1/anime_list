@@ -7,12 +7,14 @@ import 'package:anime_list/models/anime_item.dart';
 /// 生命週期完全交由 [animeDatabaseServiceProvider]（keepAlive: true）管理，
 /// 不再自行維護靜態 Singleton，方便測試時注入 mock 實例。
 class AnimeDatabaseService {
-  Database? _database;
+  // 使用 Future 快取模式確保 openDatabase 只被呼叫一次。
+  // 即使多個協程同時呼叫 _getDatabase()，第一個呼叫會建立 Future 並賦值給
+  // _dbFuture，後續呼叫只是 await 同一個 Future，不會重複開啟資料庫。
+  Future<Database>? _dbFuture;
 
   static const String _dbName = 'anime_database.db';
 
-  // 在開發階段，如果使用 DROP/CREATE 策略，版本號可以保持固定
-  static const int _dbVersion = 1; // 版本號可以保持固定
+  static const int _dbVersion = 1;
   static const String _tableName = 'anime_items';
 
   static const String name = 'name'; // TEXT PRIMARY KEY
@@ -25,31 +27,29 @@ class AnimeDatabaseService {
   static const String description = 'description'; // TEXT
   static const String official = 'official'; // TEXT
 
-  // 取得資料庫實例，如果不存在則開啟並建表 (會執行 DROP TABLE)
-  Future<Database> _getDatabase() async {
-    if (_database != null) {
-      return _database!;
-    }
-
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _dbName); // 使用 path 套件的 join
-
-    _database = await openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate, // 首次建立時會呼叫 _onCreate (包含 DROP 語句)
-      // 不提供 onUpgrade 和 onDowngrade，因為我們不使用標準的版本遷移
-    );
-
-    return _database!;
+  /// 取得資料庫實例，如果不存在則開啟並建表。
+  ///
+  /// 透過快取 [_dbFuture] 確保 [openDatabase] 只被呼叫一次。
+  /// 即使多個非同步呼叫同時進入此方法，也只有第一個呼叫會觸發 openDatabase，
+  /// 其餘呼叫等待同一個 Future 完成，不會產生重複初始化的競態條件。
+  Future<Database> _getDatabase() {
+    _dbFuture ??= _openDatabase();
+    return _dbFuture!;
   }
 
-  // 資料庫建表方法 (包含刪除現有表格的邏輯)
-  Future<void> _onCreate(Database db, int version) async {
-    // *** 警告：這行會刪除現有的 anime_items 表格及其所有資料！ ***
-    // await db.execute('DROP TABLE IF EXISTS $_tableName'); // 要測試再打開就好
+  Future<Database> _openDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, _dbName);
+    return openDatabase(
+      path,
+      version: _dbVersion,
+      onCreate: _onCreate,
+    );
+  }
 
-    // 建立新的表格 (使用新的常數名稱)
+  // 資料庫建表方法（僅在首次安裝時呼叫）
+  Future<void> _onCreate(Database db, int version) async {
+    // 建立新的表格
     await db.execute('''
       CREATE TABLE $_tableName (
         $name TEXT PRIMARY KEY, -- 使用 name 常數
@@ -135,10 +135,11 @@ class AnimeDatabaseService {
   }
 
   Future<void> close() async {
-    final db = await _getDatabase();
+    if (_dbFuture == null) return;
+    final db = await _dbFuture!;
     if (db.isOpen) {
       await db.close();
-      _database = null;
     }
+    _dbFuture = null;
   }
 }

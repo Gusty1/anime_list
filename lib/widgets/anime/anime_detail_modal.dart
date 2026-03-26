@@ -346,64 +346,18 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                 // 下載圖片按鈕
                 GestureDetector(
                   onTap: () => _handleDownload(context, imageUrl),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.download_outlined,
-                          size: 16,
-                          color: colorScheme.onSurface,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '儲存',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _ImageHintBadge(
+                    icon: Icons.download_outlined,
+                    label: '儲存',
+                    colorScheme: colorScheme,
                   ),
                 ),
                 const SizedBox(width: 6),
-                // 放大提示
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.zoom_in,
-                        size: 16,
-                        color: colorScheme.onSurface,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '放大',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
+                // 放大提示（純提示，點擊由父層 GestureDetector 處理）
+                _ImageHintBadge(
+                  icon: Icons.zoom_in,
+                  label: '放大',
+                  colorScheme: colorScheme,
                 ),
               ],
             ),
@@ -513,6 +467,44 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
                     : const Icon(Icons.share_outlined),
             tooltip: '分享動漫資訊',
             onPressed: _isSharing ? null : _shareAnimeDetails,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 封面圖右下角的操作提示徽章（如「儲存」、「放大」）
+///
+/// 提取自 [_AnimeDetailModalState._buildCoverImage]，
+/// 消除兩個結構完全相同的 Container 重複代碼。
+class _ImageHintBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final ColorScheme colorScheme;
+
+  const _ImageHintBadge({
+    required this.icon,
+    required this.label,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: colorScheme.onSurface),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
           ),
         ],
       ),
