@@ -94,7 +94,7 @@ lib/generated_plugin_registrant.dart
 **/android/gradlew
 **/android/gradlew.bat
 **/android/key.properties
-# **/android/local.properties
+**/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 
 # iOS/XCode related
@@ -382,3 +382,6 @@ hs_err_pid*
 # End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,intellij,dart,flutter,
 
 .claude/
+
+# Flutter DevTools user configuration
+devtools_options.yaml
