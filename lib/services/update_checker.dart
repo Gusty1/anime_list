@@ -138,9 +138,6 @@ class UpdateChecker {
               label: const Text('前往更新'),
             ),
           ],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
         );
       },
     );

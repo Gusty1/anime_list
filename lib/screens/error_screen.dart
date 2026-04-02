@@ -16,7 +16,8 @@ class ErrorScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('發生錯誤'),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+        foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
       ),
       body: Center(
         child: Padding(
@@ -25,7 +26,11 @@ class ErrorScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset('assets/errorRoute.gif'),
-              const Icon(Icons.error_outline, color: Colors.red, size: 60),
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).colorScheme.error,
+                size: 60,
+              ),
               const SizedBox(height: 20),
               Text(
                 '應用程式發生錯誤:',

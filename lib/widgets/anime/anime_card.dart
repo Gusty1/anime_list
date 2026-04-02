@@ -105,7 +105,6 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
     return Card(
       color: colorScheme.surfaceContainerLow,
       elevation: 1.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       margin: const EdgeInsets.symmetric(vertical: 6.0),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -286,7 +285,7 @@ class _FavoriteOverlayButton extends StatelessWidget {
         ),
         child: Icon(
           isFavorite ? Icons.favorite : Icons.favorite_border,
-          color: isFavorite ? Colors.redAccent : colorScheme.onSurfaceVariant,
+          color: isFavorite ? colorScheme.error : colorScheme.onSurfaceVariant,
           size: 20,
         ),
       ),

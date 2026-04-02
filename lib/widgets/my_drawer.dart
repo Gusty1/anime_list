@@ -59,9 +59,6 @@ class MyDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: Text('首頁', style: Theme.of(context).textTheme.titleMedium),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
             onTap: () {
               Navigator.pop(context);
               GoRouter.of(context).go(homeRoute);
@@ -73,9 +70,6 @@ class MyDrawer extends StatelessWidget {
               favoriteTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
             onTap: () {
               Navigator.pop(context);
               GoRouter.of(context).go(favoriteRoute);
@@ -86,9 +80,6 @@ class MyDrawer extends StatelessWidget {
             title: Text(
               settingsTitle,
               style: Theme.of(context).textTheme.titleMedium,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
             ),
             onTap: () {
               Navigator.pop(context);

@@ -12,6 +12,7 @@ import 'package:anime_list/widgets/anime/anime_list.dart';
 ///
 /// 根據使用者選擇的年份載入動畫資料，
 /// 透過星期 Tab 切換顯示不同天的動畫列表。
+/// 最後一個 Tab「其他」顯示 date 為空或無法解析的項目（OVA、特別篇等）。
 class AnimeListScreen extends ConsumerStatefulWidget {
   final String year;
 
@@ -24,7 +25,7 @@ class AnimeListScreen extends ConsumerStatefulWidget {
 class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
   int _currentTabIndex = 0;
 
-  /// Tab 索引 (0=日, 1=一...) 到 DateTime.weekday 的映射
+  /// Tab 索引 (0=日, 1=一...) 到 DateTime.weekday 的映射（共 7 個星期 Tab）
   static const List<int> _indexToWeekday = [
     DateTime.sunday,
     DateTime.monday,
@@ -35,7 +36,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
     DateTime.saturday,
   ];
 
-  /// 7 個 Tab 的過濾結果快取，只在 animeList 改變時重新計算
+  /// 7 個星期 Tab + 1 個「其他」Tab 的過濾結果快取，只在 animeList 改變時重新計算
   List<List<AnimeItem>>? _cachedFilteredLists;
   List<AnimeItem>? _lastAnimeList;
 
@@ -59,20 +60,26 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
     }
   }
 
-  /// 根據最新的 [animeList] 計算並快取 7 個 Tab 的過濾結果
+  /// 根據最新的 [animeList] 計算並快取所有 Tab 的過濾結果
   ///
-  /// 只在 [animeList] 參考改變時重新計算，避免每次 build 執行 7 次排序過濾。
-  /// 呼叫點位於 build() 外部（[didUpdateWidget] 與首次資料抵達），
-  /// 確保 build() 本身保持純函式特性。
+  /// 前 7 個索引對應星期日~六，最後一個索引為「其他」（date 空或無法解析）。
+  /// 只在 [animeList] 參考改變時重新計算，避免每次 build 重複過濾排序。
   void _rebuildCache(List<AnimeItem> animeList) {
     _lastAnimeList = animeList;
-    _cachedFilteredLists = List.generate(_indexToWeekday.length, (index) {
+
+    // 星期 Tab（0~6）
+    final weekdayLists = List.generate(_indexToWeekday.length, (index) {
       return DateHelper.filterByWeekday(
         animeList,
         _indexToWeekday[index],
         widget.year,
       );
     });
+
+    // 「其他」Tab：date 為空或無法解析的項目
+    final otherList = DateHelper.filterOther(animeList, widget.year);
+
+    _cachedFilteredLists = [...weekdayLists, otherList];
   }
 
   void _onTabChanged(int index) {
@@ -93,6 +100,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
       Text('四'),
       Text('五'),
       Text('六'),
+      Text('其他'),
     ];
 
     return animeListAsyncValue.when(
@@ -111,9 +119,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
                 const SizedBox(height: 12.0),
                 Text(
                   '查無資料',
-                  style: TextStyle(
-                    fontSize:
-                        Theme.of(context).textTheme.titleLarge?.fontSize ?? 24,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.error,
                   ),
@@ -129,12 +135,23 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
         }
         final filteredLists = _cachedFilteredLists!;
 
+        // 「其他」Tab 有資料才顯示，否則隱藏（只顯示星期 Tab）
+        final hasOther = filteredLists.last.isNotEmpty;
+        final visibleTabs = hasOther ? tabs : tabs.sublist(0, 7);
+        final visibleLists = hasOther
+            ? filteredLists
+            : filteredLists.sublist(0, 7);
+
+        // 切換季番後若當前 Tab 超出範圍，重設至第一個
+        final safeIndex =
+            _currentTabIndex < visibleTabs.length ? _currentTabIndex : 0;
+
         return ContainedTabBarView(
-          initialIndex: _currentTabIndex,
+          initialIndex: safeIndex,
           onChange: _onTabChanged,
-          tabs: tabs,
-          views: List.generate(tabs.length, (index) {
-            return AnimeList(animeList: filteredLists[index]);
+          tabs: visibleTabs,
+          views: List.generate(visibleTabs.length, (index) {
+            return AnimeList(animeList: visibleLists[index]);
           }),
           tabBarProperties: TabBarProperties(
             background: Container(
@@ -155,7 +172,11 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 60),
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.error,
+              size: 60,
+            ),
             const SizedBox(height: 12),
             Text(
               '載入失敗',

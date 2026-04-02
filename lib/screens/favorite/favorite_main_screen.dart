@@ -67,17 +67,20 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   }
 
   /// 搜尋欄 UI
-  Widget _buildSearchBar() {
+  ///
+  /// [hasNoFavorites] 為 true 時表示收藏列表完全為空（非搜尋無結果），
+  /// 此時停用輸入框與搜尋按鈕，避免對空資料庫發出無意義的搜尋請求。
+  Widget _buildSearchBar({required bool hasNoFavorites}) {
+    final isDisabled = _isSearching || hasNoFavorites;
     return Card(
       elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Row(
           children: [
             Expanded(
               child: TextField(
-                enabled: !_isSearching,
+                enabled: !isDisabled,
                 controller: _textController,
                 decoration: const InputDecoration(
                   hintText: '搜尋收藏的動漫...',
@@ -95,7 +98,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 4.0),
               child: IconButton.filledTonal(
-                onPressed: !_isSearching ? _search : null,
+                onPressed: !isDisabled ? _search : null,
                 icon: const Icon(Icons.search),
                 tooltip: '搜尋',
               ),
@@ -123,9 +126,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
             child: Text(
               emptyText,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize:
-                    Theme.of(context).textTheme.headlineMedium?.fontSize,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: Theme.of(context).colorScheme.secondary,
                 fontWeight: FontWeight.bold,
               ),
@@ -151,8 +152,8 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
                 children: <TextSpan>[
                   TextSpan(
                     text: '${animeList.length}',
-                    style: const TextStyle(
-                      color: Colors.lightBlue,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -184,6 +185,12 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
   Widget build(BuildContext context) {
     final favoriteAsync = ref.watch(favoriteProvider);
 
+    // 「真正的空收藏」：資料已載入、列表為空、且搜尋欄也沒有輸入值
+    // 若搜尋欄有值而無結果，使用者仍需要能修改搜尋詞，不應 disabled
+    final hasNoFavorites =
+        favoriteAsync.asData?.value.isEmpty == true &&
+        _textController.text.isEmpty;
+
     return Container(
       padding: const EdgeInsets.all(5.0),
       margin: const EdgeInsets.all(5.0),
@@ -191,7 +198,7 @@ class _FavoriteMainScreenState extends ConsumerState<FavoriteMainScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _buildSearchBar(),
+          _buildSearchBar(hasNoFavorites: hasNoFavorites),
 
           // 收藏列表（使用 AsyncValue.when 處理狀態）
           favoriteAsync.when(

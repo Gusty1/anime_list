@@ -40,11 +40,7 @@ class YearListCard extends StatelessWidget {
           return Card(
             elevation: 3,
             margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
               onTap: () => GoRouter.of(context).push('/anime/$year'),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -73,9 +69,7 @@ class YearListCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '$year 年',
-                        style: TextStyle(
-                          fontSize:
-                              Theme.of(context).textTheme.titleLarge?.fontSize,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),

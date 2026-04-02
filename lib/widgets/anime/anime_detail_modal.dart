@@ -192,7 +192,6 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
 
     return Dialog(
       backgroundColor: colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
@@ -444,7 +443,7 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
               isFavorite ? Icons.favorite : Icons.favorite_border,
               color:
                   isFavorite
-                      ? Colors.redAccent
+                      ? colorScheme.error
                       : colorScheme.onSecondaryContainer,
             ),
             onPressed: widget.toggleFavorite,
@@ -456,12 +455,12 @@ class _AnimeDetailModalState extends ConsumerState<AnimeDetailModal> {
           IconButton.filledTonal(
             icon:
                 _isSharing
-                    ? const SizedBox(
+                    ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.grey,
+                        color: colorScheme.onSecondaryContainer,
                       ),
                     )
                     : const Icon(Icons.share_outlined),
@@ -504,7 +503,9 @@ class _ImageHintBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurface),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurface,
+          ),
           ),
         ],
       ),

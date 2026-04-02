@@ -1,7 +1,7 @@
 # 專案架構分析報告
 
 > **生成日期：** 2026-03-25
-> **最後更新：** 2026-03-26
+> **最後更新：** 2026-04-03
 > **專案版本：** 1.2.3+12
 > **Flutter SDK：** ^3.7.0
 > **分析範圍：** `lib/` 目錄全部 Dart 原始碼（排除 `.dart_tool/`）
@@ -74,7 +74,7 @@ lib/
     ├── favorite/
     │   └── refresh_btn.dart
     ├── setting/
-    │   └── theme_switch.dart
+    │   (已清空，theme_switch 整合至 SettingMainScreen)
     ├── app_loading_indicator.dart
     ├── connectivity_watcher.dart
     ├── my_drawer.dart
@@ -149,7 +149,8 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 
 **`widgets/anime/anime_bottom_bar.dart`**
 
-底部列固定只顯示季番月份（01、04、07、10）。若 API 回傳非季番月份（如特別篇 06），使用者無法透過底部列瀏覽，靜默顯示空列表。
+底部列固定只顯示季番月份（01、04、07、10），已改用 Flutter 原生 `NavigationBar`。
+若 API 回傳非季番月份（如特別篇 06），使用者無法透過底部列瀏覽，靜默顯示空列表。
 
 **建議：** 加入使用者提示，或在路由層面限制可進入的月份。
 
@@ -195,8 +196,11 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 | `win32_registry` | 2.1.0 | 3.0.2 | Major 版本，同上 |
 | `meta` | 1.17.0 | 1.18.2 | 受 Flutter SDK 版本約束，無法升級 |
 
-### 4.3 依賴審計 - 無未使用依賴
+### 4.3 依賴審計（2026-04-03 更新）
 
+本次移除 `convex_bottom_bar 3.2.0`（底部導覽列改為 Flutter 原生 `NavigationBar`）。
+確認 `dynamic_tabbar` 在本次更新前即已不存在於 pubspec.yaml（上版本已替換為 `contained_tab_bar_view`）。
+移除 `toggle_switch` 第三方套件（主題切換改為原生 `SwitchListTile`）。
 所有宣告的直接依賴均有實際使用，無需清理。
 
 ---
@@ -217,13 +221,27 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 | `YearListCard` | `StatelessWidget` | CORRECT - 純 UI 渲染 |
 | `AnimeList` | `StatelessWidget` | CORRECT - 純 ListView 包裝 |
 | `AnimeBottomBar` | `ConsumerStatefulWidget` | CORRECT - 需要底部選擇狀態 |
-| `ThemeSwitch` | `ConsumerWidget` | CORRECT - 只需讀取 Provider |
+| ~~`ThemeSwitch`~~ | _(已移除)_ | 功能整合至 `SettingMainScreen` 的 `SwitchListTile` |
 | `AppLoadingIndicator` | `StatelessWidget` | CORRECT - 純 UI |
 | `ConnectivityWatcher` | `ConsumerStatefulWidget` | CORRECT - 需要監聽 Stream |
 
 無多餘的 StatefulWidget，所有 Widget 類型選擇均合理。
 
-### 5.2 效能設計（已優化）
+### 5.2 Material 3 合規性（2026-04-03 全面達成）
+
+全專案已完成 Material 3 遷移，無任何遺留的舊版模式：
+
+| 修正項目 | 原始問題 | 修正內容 |
+|----------|----------|----------|
+| `error_screen.dart` | `Colors.redAccent`、`Colors.red` 硬編碼 | 改用 `colorScheme.errorContainer`、`colorScheme.error` |
+| `favorite_main_screen.dart` | `Colors.lightBlue` 硬編碼 | 改用 `colorScheme.primary` |
+| `anime_card.dart` | `Colors.redAccent` 硬編碼 | 改用 `colorScheme.error` |
+| `anime_detail_modal.dart` | `Colors.redAccent`、`Colors.grey`、`fontSize: 11` 硬編碼 | 改用 ColorScheme token + `textTheme.labelSmall` |
+| `anime_list_screen.dart` | `Colors.red` 硬編碼 | 改用 `colorScheme.error` |
+| `setting_main_screen.dart` | 舊版 `ListView + Divider` 佈局 | 重新設計為 Card 分區塊的簡約 M3 風格 |
+| `widgets/setting/theme_switch.dart` | 獨立 Widget，邏輯分散 | 刪除，整合至 `SettingMainScreen` 的 `SwitchListTile` |
+
+### 5.3 效能設計（已優化）
 
 - **`Theme.of(context)`**：使用 `InheritedWidget`，查詢已被 Flutter 優化為 O(1)，正確寫法。
 - **`AnimeListScreen` 快取**：`build()` 只負責 Guard 判斷，`_rebuildCache()` 集中快取計算，`didUpdateWidget` 負責年份切換清除，`build()` 無副作用。
@@ -286,6 +304,12 @@ void main() {
     test('空列表回傳空列表');
   });
 
+  group('DateHelper.filterOther', () {
+    test('date 為空字串的項目應被納入');
+    test('date 無法解析的項目應被納入');
+    test('date 可正常解析的項目不應被納入');
+  });
+
   group('DateHelper.compareAnimeByDateTime', () {
     test('ascending 排序');
     test('descending 排序');
@@ -332,10 +356,10 @@ void main() {
 | **模組職責** | 8/10 | 各層職責清晰；`anime_detail_modal.dart` 可繼續拆分 |
 | **代碼品質** | 9/10 | 巢狀、build 方法長度、魔法數字問題均已修復 |
 | **Bug 風險** | 9/10 | 已知問題均已修復；剩餘為 LOW 級別設計取捨 |
-| **相依性管理** | 10/10 | 直接 + 間接依賴全部升至最新可用版本，無未使用套件 |
-| **UI 元件設計** | 9/10 | Widget 類型選擇正確，效能優化到位 |
+| **相依性管理** | 10/10 | 直接 + 間接依賴全部升至最新可用版本，移除 convex_bottom_bar，無未使用套件 |
+| **UI 元件設計** | 10/10 | Widget 類型選擇正確，效能優化到位；全面完成 Material 3 遷移，無硬編碼顏色 |
 | **測試覆蓋率** | 2/10 | 幾乎無測試，是目前最大的技術債 |
-| **整體評分** | **8.0/10** | 架構健康，代碼品質良好；主要技術債在測試 |
+| **整體評分** | **8.3/10** | 架構健康，代碼品質良好，Material 3 全面達成；主要技術債在測試 |
 
 ### 最高投資報酬率的改進
 

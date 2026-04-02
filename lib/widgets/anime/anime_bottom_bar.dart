@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:anime_list/providers/year_month_provider.dart';
 
@@ -37,19 +36,29 @@ class _AnimeBottomBarState extends ConsumerState<AnimeBottomBar> {
 
   @override
   Widget build(BuildContext context) {
-    return ConvexAppBar(
-      items: const [
-        TabItem(icon: Symbols.ac_unit, title: '冬番'),
-        TabItem(icon: Symbols.nest_eco_leaf, title: '春番'),
-        TabItem(icon: Symbols.beach_access, title: '夏番'),
-        TabItem(icon: Symbols.eco, title: '秋番'),
-      ],
-      height: 60.0,
-      initialActiveIndex: _selectedIndex,
-      onTap: _onItemTapped,
+    return NavigationBar(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: _onItemTapped,
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      activeColor: Theme.of(context).colorScheme.secondary,
-      color: Theme.of(context).colorScheme.primary,
+      indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Symbols.ac_unit),
+          label: '冬番',
+        ),
+        NavigationDestination(
+          icon: Icon(Symbols.nest_eco_leaf),
+          label: '春番',
+        ),
+        NavigationDestination(
+          icon: Icon(Symbols.beach_access),
+          label: '夏番',
+        ),
+        NavigationDestination(
+          icon: Icon(Symbols.eco),
+          label: '秋番',
+        ),
+      ],
     );
   }
 }

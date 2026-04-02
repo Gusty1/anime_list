@@ -57,7 +57,6 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -95,12 +94,8 @@ class _AnimeSentenceState extends ConsumerState<AnimeSentence> {
                         alignment: Alignment.centerRight,
                         child: Text(
                           '— ${hitokoto.from}',
-                          style: TextStyle(
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize:
-                                Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.fontSize,
                             color: colorScheme.primary,
                           ),
                           textAlign: TextAlign.end,

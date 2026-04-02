@@ -116,4 +116,21 @@ class DateHelper {
 
     return filteredList;
   }
+
+  /// 過濾出「其他」類別的動漫：date 為空或無法解析為有效日期的項目
+  ///
+  /// 適用於無法歸入星期一~日的資料，例如 OVA、特別篇、日期未定等。
+  static List<AnimeItem> filterOther(
+    List<AnimeItem> list,
+    String year,
+  ) {
+    final filteredList =
+        list.where((item) {
+          if (item.date.isEmpty) return true;
+          final date = parseAnimeDate(item.date, year: year);
+          return date == null;
+        }).toList();
+
+    return filteredList;
+  }
 }
