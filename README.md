@@ -23,6 +23,6 @@
 
 ## TODO
 
-- [ ] 上架 Google Play
+- [ ] 上架 Google Play  
   要上架 Google Play 要有人幫忙測試，如果覺得這個 APP 有用的話請聯繫我（<a0985209465@gmail.com>），我會給你 Google Play 測試連結，幫忙增加測試人數，感謝！
-- [ ] 桌面小工具
+- [ ] 桌面小工具(不知道做不做得到)
