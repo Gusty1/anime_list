@@ -1,9 +1,9 @@
 # anime_list
 
-學習Flutter 的練習項目，模仿[Anime List](https://acgntaiwan.github.io/Anime-List/)的手機app
+學習Flutter 的練習項目，模仿[Anime List](https://acgntaiwan.github.io/Anime-List 'Anime')的手機app
 
-本APP不是看動畫的，就只是單純的展示各種動畫播出資訊而已
-理論上只要`Anime List`還有在更新他的資料，我的APP也會跟著更新，但是他有些資料沒有寫播出時間，我的APP就會把它過濾掉
+本APP不是看動畫的，就只是單純的展示各種動畫播出資訊而已  
+資料來源是從**Anime List**來的，然後我再去[MyAnimeList](https://myanimelist.net/ 'MyAnimeList')爬PV，最後再由我人工檢查  
 
 ## 程式截圖
 
