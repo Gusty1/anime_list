@@ -1,8 +1,8 @@
 # 專案架構分析報告
 
 > **生成日期：** 2026-03-25
-> **最後更新：** 2026-04-03
-> **專案版本：** 1.2.3+12
+> **最後更新：** 2026-04-15
+> **專案版本：** 1.3.0+14
 > **Flutter SDK：** ^3.7.0
 > **分析範圍：** `lib/` 目錄全部 Dart 原始碼（排除 `.dart_tool/`）
 
@@ -52,6 +52,7 @@ lib/
 │   └── update_checker.dart
 ├── screens/                (頁面層)
 │   ├── anime/
+│   │   ├── anime_detail_screen.dart  ← 動漫詳細資訊完整頁面（含 YT PV 播放）
 │   │   ├── anime_list_screen.dart
 │   │   └── anime_main_screen.dart
 │   ├── favorite/
@@ -62,12 +63,12 @@ lib/
 │   └── no_network_screen.dart
 ├── utils/
 │   ├── date_helper.dart    (119 行)
+│   ├── image_save_utils.dart         ← 封面圖儲存/分享工具函數
 │   └── logger.dart
 └── widgets/                (可複用 UI 元件層)
     ├── anime/
     │   ├── anime_bottom_bar.dart
     │   ├── anime_card.dart
-    │   ├── anime_detail_modal.dart  ← 最大檔案，建議繼續拆分
     │   ├── anime_list.dart
     │   ├── anime_sentence.dart
     │   └── year_list_card.dart
@@ -170,7 +171,7 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 
 | 問題 | 位置 |
 |------|------|
-| 圖片無 `semanticLabel` | `anime_card.dart`、`anime_detail_modal.dart` 的 `CachedNetworkImage` |
+| 圖片無 `semanticLabel` | `anime_card.dart`、`anime_detail_screen.dart` 的 `CachedNetworkImage` |
 | 愛心按鈕無 `Semantics` 包裝 | `anime_card.dart` 的 `_FavoriteOverlayButton` |
 | Tab 文字（日、一...）無輔助說明 | `anime_list_screen.dart` |
 
@@ -196,11 +197,12 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 | `win32_registry` | 2.1.0 | 3.0.2 | Major 版本，同上 |
 | `meta` | 1.17.0 | 1.18.2 | 受 Flutter SDK 版本約束，無法升級 |
 
-### 4.3 依賴審計（2026-04-03 更新）
+### 4.3 依賴審計（2026-04-15 更新）
 
 本次移除 `convex_bottom_bar 3.2.0`（底部導覽列改為 Flutter 原生 `NavigationBar`）。
 確認 `dynamic_tabbar` 在本次更新前即已不存在於 pubspec.yaml（上版本已替換為 `contained_tab_bar_view`）。
 移除 `toggle_switch` 第三方套件（主題切換改為原生 `SwitchListTile`）。
+新增 `youtube_player_flutter ^9.1.3`（動漫詳細頁 YT PV 播放功能）。
 所有宣告的直接依賴均有實際使用，無需清理。
 
 ---
@@ -214,7 +216,7 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 | `AnimeMainScreen` | `StatelessWidget` | CORRECT |
 | `AnimeListScreen` | `ConsumerStatefulWidget` | CORRECT - 需要 tab index 及快取 |
 | `AnimeCard` | `ConsumerStatefulWidget` | CORRECT - 需讀取 Provider |
-| `AnimeDetailModal` | `ConsumerStatefulWidget` | CORRECT - 需要分享載入狀態 |
+| `AnimeDetailScreen` | `ConsumerStatefulWidget` | CORRECT - 需要分享載入狀態、YT 控制器生命週期 |
 | `FavoriteMainScreen` | `ConsumerStatefulWidget` | CORRECT - 需要搜尋 controller |
 | `SettingMainScreen` | `ConsumerStatefulWidget` | CORRECT - 需要 PackageInfo 非同步載入 |
 | `AnimeSentence` | `ConsumerStatefulWidget` | CORRECT - 需要 Timer 管理 |
@@ -236,7 +238,7 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 | `error_screen.dart` | `Colors.redAccent`、`Colors.red` 硬編碼 | 改用 `colorScheme.errorContainer`、`colorScheme.error` |
 | `favorite_main_screen.dart` | `Colors.lightBlue` 硬編碼 | 改用 `colorScheme.primary` |
 | `anime_card.dart` | `Colors.redAccent` 硬編碼 | 改用 `colorScheme.error` |
-| `anime_detail_modal.dart` | `Colors.redAccent`、`Colors.grey`、`fontSize: 11` 硬編碼 | 改用 ColorScheme token + `textTheme.labelSmall` |
+| `anime_detail_screen.dart` | `Colors.redAccent`、`Colors.grey`、`fontSize: 11` 硬編碼 | 改用 ColorScheme token + `textTheme.labelSmall` |
 | `anime_list_screen.dart` | `Colors.red` 硬編碼 | 改用 `colorScheme.error` |
 | `setting_main_screen.dart` | 舊版 `ListView + Divider` 佈局 | 重新設計為 Card 分區塊的簡約 M3 風格 |
 | `widgets/setting/theme_switch.dart` | 獨立 Widget，邏輯分散 | 刪除，整合至 `SettingMainScreen` 的 `SwitchListTile` |
@@ -251,19 +253,14 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 
 ## 6. 未來建議
 
-### 6.1 `anime_detail_modal.dart` 拆分（優先級：MEDIUM）
+### 6.1 動漫詳細頁重構（已完成 - 2026-04-14）
 
-目前為最大單一檔案，建議拆分：
+原 `anime_detail_modal.dart` 彈窗已重構為完整頁面，並完成以下拆分：
 
-```
-widgets/anime/
-├── anime_detail_modal.dart          # 主彈窗框架（保留約 150 行）
-└── detail/
-    ├── detail_cover_section.dart    # 封面圖區塊（含 easy_image_viewer 整合）
-    ├── detail_info_chips.dart       # 資訊標籤（季番、台灣首播等）
-    ├── detail_action_bar.dart       # 操作列（收藏、分享、儲存）
-    └── detail_image_operations.dart # 圖片儲存/分享業務邏輯（可提取為 mixin 或 service）
-```
+- `screens/anime/anime_detail_screen.dart`：動漫詳細資訊完整頁面，內含 YT PV 播放器（`youtube_player_flutter`）、封面圖、資訊 Chip、分享等功能
+- `utils/image_save_utils.dart`：封面圖儲存/分享工具函數獨立提取
+
+改為完整頁面（非 Dialog）的主要原因：`YoutubePlayerBuilder` 的全螢幕切換需要推入新路由，在 Dialog 內會有 overflow 問題。
 
 ### 6.2 `FavoriteSearchBar` 獨立 Widget（優先級：LOW）
 
@@ -364,7 +361,7 @@ void main() {
 ### 最高投資報酬率的改進
 
 1. **建立 `DateHelper` 單元測試** — 核心業務邏輯，補測試成本低、效益高
-2. **拆分 `anime_detail_modal.dart`** — 最大的可維護性提升
+2. ~~**拆分 `anime_detail_modal.dart`**~~ — 已於 2026-04-14 完成，重構為 `AnimeDetailScreen` 完整頁面
 3. **處理 `ConnectivityWatcher` Dialog 堆疊問題** — 邊緣情境的穩定性修復
 
 ---
