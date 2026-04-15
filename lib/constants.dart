@@ -13,10 +13,13 @@ const String originUrl = 'https://acgntaiwan.github.io/Anime-List/';
 
 /// 動漫資訊 JSON 的基底 URL（後接 YYYY.MM.json）
 const String animeInfoBaseUrl =
-    'https://acgntaiwan.github.io/Anime-List/anime-data/anime';
+    'https://gusty1.github.io/Database/anime_list/output/anime';
 
 /// 動漫封面圖片的基底 URL
 const String imageBaseUrl = 'https://acgntaiwan.github.io/Anime-List/';
+
+/// MyAnimeList 網站（PV 來源）
+const String malUrl = 'https://myanimelist.net/';
 
 // ---------------------------------------------------------------------------
 // 路由名稱常數

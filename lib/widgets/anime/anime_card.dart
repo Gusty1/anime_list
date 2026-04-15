@@ -6,7 +6,7 @@ import 'package:anime_list/providers/anime_database_provider.dart';
 import 'package:anime_list/providers/favorite_provider.dart';
 import 'package:anime_list/models/anime_item.dart';
 import 'package:anime_list/widgets/app_loading_indicator.dart';
-import 'package:anime_list/widgets/anime/anime_detail_modal.dart';
+import 'package:anime_list/screens/anime/anime_detail_screen.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
 
 /// 封面圖寬度
@@ -110,14 +110,13 @@ class _AnimeCardState extends ConsumerState<AnimeCard> {
       child: InkWell(
         onTap: () {
           if (!mounted) return;
-          showDialog(
-            context: context,
-            builder: (BuildContext dialogContext) {
-              return AnimeDetailModal(
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AnimeDetailScreen(
                 animeItem: widget.animeItem,
-                toggleFavorite: _toggleFavorite,
-              );
-            },
+              ),
+            ),
           );
         },
         child: Padding(

@@ -13,6 +13,9 @@ class AnimeItem {
   final String description;
   final String official;
 
+  /// PV 影片網址（YouTube），可為 null 表示無 PV
+  final String? pv;
+
   const AnimeItem({
     required this.name,
     required this.date,
@@ -23,6 +26,7 @@ class AnimeItem {
     required this.img,
     required this.description,
     required this.official,
+    this.pv,
   });
 
   // ---------------------------------------------------------------------------
@@ -31,6 +35,9 @@ class AnimeItem {
 
   /// 完整的圖片 URL，自動判斷是否需要加上基底路徑
   String get fullImageUrl => img.startsWith('http') ? img : '$imageBaseUrl$img';
+
+  /// 是否有 PV 影片
+  bool get hasPv => pv != null && pv!.isNotEmpty;
 
   /// 將英文的原作類型轉換為中文顯示文字
   String get displayCarrier {
@@ -64,6 +71,7 @@ class AnimeItem {
       img: (json['img'] as String?) ?? '',
       description: (json['description'] as String?) ?? '',
       official: json['official']?.toString() ?? '',
+      pv: json['pv'] as String?,
     );
   }
 
@@ -79,6 +87,7 @@ class AnimeItem {
       'img': img,
       'description': description,
       'official': official,
+      'pv': pv,
     };
   }
 
@@ -94,6 +103,7 @@ class AnimeItem {
       img: (map['img'] as String?) ?? '',
       description: (map['description'] as String?) ?? '',
       official: map['official']?.toString() ?? '',
+      pv: map['pv'] as String?,
     );
   }
 
@@ -109,6 +119,7 @@ class AnimeItem {
       'img': img,
       'description': description,
       'official': official,
+      'pv': pv,
     };
   }
 
@@ -127,6 +138,7 @@ class AnimeItem {
     String? img,
     String? description,
     String? official,
+    String? pv,
   }) {
     return AnimeItem(
       name: name ?? this.name,
@@ -138,6 +150,7 @@ class AnimeItem {
       img: img ?? this.img,
       description: description ?? this.description,
       official: official ?? this.official,
+      pv: pv ?? this.pv,
     );
   }
 
@@ -154,7 +167,8 @@ class AnimeItem {
         other.originalName == originalName &&
         other.img == img &&
         other.description == description &&
-        other.official == official;
+        other.official == official &&
+        other.pv == pv;
   }
 
   @override
@@ -169,6 +183,7 @@ class AnimeItem {
       img,
       description,
       official,
+      pv,
     );
   }
 
@@ -176,6 +191,6 @@ class AnimeItem {
   String toString() {
     return 'AnimeItem(name: $name, date: $date, time: $time, '
         'carrier: $carrier, season: $season, originalName: $originalName, '
-        'img: $img, description: $description, official: $official)';
+        'img: $img, description: $description, official: $official, pv: $pv)';
   }
 }

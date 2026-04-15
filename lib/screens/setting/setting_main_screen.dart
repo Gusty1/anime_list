@@ -42,11 +42,10 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
     }
   }
 
-  /// 開啟 ACG Taiwan Anime List 網站
-  Future<void> _launchUrl(BuildContext context) async {
+  /// 開啟指定網址
+  Future<void> _launchUrl(BuildContext context, String url) async {
     if (!mounted) return;
-    final url = Uri.parse(originUrl);
-    if (!await launchUrl(url)) {
+    if (!await launchUrl(Uri.parse(url))) {
       if (context.mounted) {
         ToastUtils.showShortToast(context, '無法開啟連結');
       }
@@ -206,21 +205,32 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                     children: <TextSpan>[
-                      const TextSpan(text: '本 APP 資料來源於'),
+                      const TextSpan(text: '動漫資料來源：'),
                       TextSpan(
-                        text: ' ACG Taiwan Anime List',
+                        text: 'ACG Taiwan Anime List',
                         style: TextStyle(
                           color: colorScheme.primary,
                           decoration: TextDecoration.underline,
                           decorationColor: colorScheme.primary,
                         ),
                         recognizer: TapGestureRecognizer()
-                          ..onTap = () => _launchUrl(context),
+                          ..onTap = () => _launchUrl(context, originUrl),
+                      ),
+                      const TextSpan(text: '\nPV 來源：'),
+                      TextSpan(
+                        text: 'MyAnimeList',
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                          decorationColor: colorScheme.primary,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => _launchUrl(context, malUrl),
                       ),
                     ],
                   ),
                 ),
-                isThreeLine: false,
+                isThreeLine: true,
               ),
             ],
           ),

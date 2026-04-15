@@ -14,7 +14,9 @@ class AnimeDatabaseService {
 
   static const String _dbName = 'anime_database.db';
 
-  static const int _dbVersion = 1;
+  // v1 → 原始 schema（9 個欄位）
+  // v2 → 新增 pv TEXT 欄位
+  static const int _dbVersion = 2;
   static const String _tableName = 'anime_items';
 
   static const String name = 'name'; // TEXT PRIMARY KEY
@@ -26,6 +28,7 @@ class AnimeDatabaseService {
   static const String img = 'img'; // TEXT
   static const String description = 'description'; // TEXT
   static const String official = 'official'; // TEXT
+  static const String pv = 'pv'; // TEXT NULLABLE
 
   /// 取得資料庫實例，如果不存在則開啟並建表。
   ///
@@ -44,25 +47,36 @@ class AnimeDatabaseService {
       path,
       version: _dbVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
-  // 資料庫建表方法（僅在首次安裝時呼叫）
+  /// 首次安裝時建表（包含全部欄位）
   Future<void> _onCreate(Database db, int version) async {
-    // 建立新的表格
     await db.execute('''
       CREATE TABLE $_tableName (
-        $name TEXT PRIMARY KEY, -- 使用 name 常數
-        $date TEXT, -- 使用 date 常數
-        $time TEXT, -- 使用 time 常數
-        $carrier TEXT, -- 使用 carrier 常數
-        $season TEXT, -- 使用 season 常數
-        $originalName TEXT, -- 使用 originalName 常數
-        $img TEXT, -- 使用 img 常數
-        $description TEXT, -- 使用 description 常數
-        $official TEXT -- 使用 official 常數
+        $name TEXT PRIMARY KEY,
+        $date TEXT,
+        $time TEXT,
+        $carrier TEXT,
+        $season TEXT,
+        $originalName TEXT,
+        $img TEXT,
+        $description TEXT,
+        $official TEXT,
+        $pv TEXT
       )
     ''');
+  }
+
+  /// 資料庫升版遷移
+  ///
+  /// v1 → v2：新增 pv 欄位（nullable，預設 NULL）
+  /// 舊手機升級 App 後會走此路徑，不影響既有收藏資料。
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE $_tableName ADD COLUMN $pv TEXT');
+    }
   }
 
   Future<int> insertAnimeItem(AnimeItem item) async {
