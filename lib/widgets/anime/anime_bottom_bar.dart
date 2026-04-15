@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_symbols_icons/symbols.dart';
+
 import 'package:anime_list/providers/year_month_provider.dart';
 
 /// 動畫清單頁面的底部季番導航列
@@ -43,19 +43,19 @@ class _AnimeBottomBarState extends ConsumerState<AnimeBottomBar> {
       indicatorColor: Theme.of(context).colorScheme.secondaryContainer,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Symbols.ac_unit),
+          icon: Icon(Icons.ac_unit),
           label: '冬番',
         ),
         NavigationDestination(
-          icon: Icon(Symbols.nest_eco_leaf),
+          icon: Icon(Icons.spa),
           label: '春番',
         ),
         NavigationDestination(
-          icon: Icon(Symbols.beach_access),
+          icon: Icon(Icons.beach_access),
           label: '夏番',
         ),
         NavigationDestination(
-          icon: Icon(Symbols.eco),
+          icon: Icon(Icons.eco),
           label: '秋番',
         ),
       ],

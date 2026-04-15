@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:feedback/feedback.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
-import 'package:material_symbols_icons/symbols.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:anime_list/constants.dart';
@@ -116,7 +116,7 @@ class MyScaffoldWrapper extends StatelessWidget {
                 _sendFeedbackByEmail(feedback: feedback, context: context);
               });
             },
-            icon: const Icon(Symbols.bug_report),
+            icon: const Icon(Icons.bug_report),
           ),
         ],
       ),

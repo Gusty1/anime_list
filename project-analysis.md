@@ -2,7 +2,7 @@
 
 > **生成日期：** 2026-03-25
 > **最後更新：** 2026-04-15
-> **專案版本：** 1.3.0+14
+> **專案版本：** 1.3.1+15
 > **Flutter SDK：** ^3.7.0
 > **分析範圍：** `lib/` 目錄全部 Dart 原始碼（排除 `.dart_tool/`）
 
@@ -203,6 +203,7 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 確認 `dynamic_tabbar` 在本次更新前即已不存在於 pubspec.yaml（上版本已替換為 `contained_tab_bar_view`）。
 移除 `toggle_switch` 第三方套件（主題切換改為原生 `SwitchListTile`）。
 新增 `youtube_player_flutter ^9.1.3`（動漫詳細頁 YT PV 播放功能）。
+移除 `material_symbols_icons ^4.2906.0`（底部列與 Bug 回報圖示改用 Flutter 內建 `Icons`，解決舊版 Android 裝置 icon 無法顯示的問題）。
 所有宣告的直接依賴均有實際使用，無需清理。
 
 ---
