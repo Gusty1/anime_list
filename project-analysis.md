@@ -254,7 +254,7 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 
 ## 6. 未來建議
 
-### 6.1 動漫詳細頁重構（已完成 - 2026-04-14）
+### 6.1 動漫詳細頁重構（已完成 - 2026-04-14，持續優化至 2026-04-22）
 
 原 `anime_detail_modal.dart` 彈窗已重構為完整頁面，並完成以下拆分：
 
@@ -262,6 +262,8 @@ Screens/Widgets (依賴 Providers + Models + Widgets)
 - `utils/image_save_utils.dart`：封面圖儲存/分享工具函數獨立提取
 
 改為完整頁面（非 Dialog）的主要原因：`YoutubePlayerBuilder` 的全螢幕切換需要推入新路由，在 Dialog 內會有 overflow 問題。
+
+後續小優化（2026-04-22）：AppBar title 新增點擊複製功能，以 `GestureDetector` 包住 `Text`，點擊後呼叫 `Clipboard.setData` 並以 `ToastUtils.showShortToast` 顯示「複製成功」。名稱維持 `maxLines: 1` + `ellipsis`，超長名稱以省略號截斷，避免 AppBar 高度變形。
 
 ### 6.2 `FavoriteSearchBar` 獨立 Widget（優先級：LOW）
 

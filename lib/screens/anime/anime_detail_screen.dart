@@ -191,11 +191,17 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen> with Widg
         },
       ),
       centerTitle: true,
-      title: Text(
-        widget.animeItem.name,
-        style: Theme.of(context).textTheme.titleLarge,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      title: GestureDetector(
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: widget.animeItem.name));
+          ToastUtils.showShortToast(context, '複製成功');
+        },
+        child: Text(
+          widget.animeItem.name,
+          style: Theme.of(context).textTheme.titleLarge,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       actions: [
         IconButton(
