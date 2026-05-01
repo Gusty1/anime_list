@@ -434,10 +434,16 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen> with Widg
     );
   }
 
+  /// 複製動漫名稱至剪貼簿
+  void _copyName() {
+    Clipboard.setData(ClipboardData(text: widget.animeItem.name));
+    ToastUtils.showShortToast(context, '複製成功');
+  }
+
   /// 動漫名稱標題
   ///
-  /// 有官方網站時顯示為可點擊超連結（底線 + primary 色），
-  /// 無官方網站時顯示為一般文字。
+  /// 有官方網站時顯示為可點擊超連結（底線 + primary 色），點擊開啟網址，長按複製名稱。
+  /// 無官方網站時顯示為一般文字，長按複製名稱。
   Widget _buildNameTitle(ColorScheme colorScheme, TextTheme textTheme) {
     final hasOfficial = widget.animeItem.official.isNotEmpty;
 
@@ -450,10 +456,9 @@ class _AnimeDetailScreenState extends ConsumerState<AnimeDetailScreen> with Widg
       ),
     );
 
-    if (!hasOfficial) return nameText;
-
     return InkWell(
-      onTap: _launchOfficialUrl,
+      onTap: hasOfficial ? _launchOfficialUrl : null,
+      onLongPress: _copyName,
       borderRadius: BorderRadius.circular(4),
       child: nameText,
     );
