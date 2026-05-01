@@ -1,154 +1,154 @@
 # AGENTS.md — Anime List Flutter App
 
-> AI agent 操作指南。描述本專案的架構、慣例、禁忌操作與常見任務的正確流程。
-> 撰寫於 2026-04-28，基於版本 1.3.1+15。
+> Operational guide for AI agents. Describes the project architecture, conventions, forbidden operations, and correct workflows for common tasks.
+> Written 2026-04-28, based on version 1.3.1+15.
 
 ---
 
-## 目錄
+## Table of Contents
 
-1. [專案概覽](#1-專案概覽)
-2. [技術棧與關鍵依賴](#2-技術棧與關鍵依賴)
-3. [目錄結構](#3-目錄結構)
-4. [架構慣例](#4-架構慣例)
-5. [重要設計決策（禁止更動）](#5-重要設計決策禁止更動)
-6. [常見任務操作指南](#6-常見任務操作指南)
-7. [已知技術債與開放問題](#7-已知技術債與開放問題)
-8. [測試現況](#8-測試現況)
-
----
-
-## 1. 專案概覽
-
-**用途：** 台灣動漫季番查詢 App，資料源自 ACG Taiwan Anime List。
-**平台：** Android（主要），Windows（次要）。
-**語言：** Dart / Flutter，採 Material 3 設計語言，強制直向顯示。
-**架構：** MVVM + Riverpod 3（`flutter_riverpod ^3.2.1`）。
+1. [Project Overview](#1-project-overview)
+2. [Tech Stack & Key Dependencies](#2-tech-stack--key-dependencies)
+3. [Directory Structure](#3-directory-structure)
+4. [Architecture Conventions](#4-architecture-conventions)
+5. [Critical Design Decisions (Do Not Change)](#5-critical-design-decisions-do-not-change)
+6. [Common Task Workflows](#6-common-task-workflows)
+7. [Known Technical Debt & Open Issues](#7-known-technical-debt--open-issues)
+8. [Test Coverage Status](#8-test-coverage-status)
 
 ---
 
-## 2. 技術棧與關鍵依賴
+## 1. Project Overview
 
-| 套件 | 用途 |
-|------|------|
-| `flutter_riverpod ^3.2.1` | 狀態管理（AsyncNotifier / Provider） |
-| `go_router ^17.1.0` | 宣告式路由 |
-| `flex_color_scheme ^8.4.0` | Material 3 主題（aquaBlue scheme） |
-| `dio ^5.9.1` | HTTP 客戶端 |
-| `sqflite ^2.4.2` | 本地 SQLite 收藏資料庫（v2 schema） |
-| `youtube_player_flutter ^9.1.3` | PV 播放（需 `YoutubePlayerBuilder` 包住 Scaffold） |
-| `cached_network_image ^3.4.1` | 封面圖快取 |
-| `feedback ^3.2.0` | 截圖回饋（ZhTwFeedbackLocalizations 在地化） |
-| `connectivity_plus ^7.0.0` | 網路狀態（回傳 `List<ConnectivityResult>`） |
-| `share_plus ^13.0.0` | 分享動漫資訊（ShareParams API） |
-| `easy_image_viewer ^1.5.1` | 全螢幕封面圖檢視 |
-| `url_launcher ^6.3.2` | 開啟官網 / MAL 連結 |
-| `permission_handler ^12.0.1` | Android 儲存權限 |
-| `image_gallery_saver_plus ^4.0.1` | 儲存封面圖至相簿 |
+**Purpose:** Taiwan seasonal anime browser app. Data sourced from ACG Taiwan Anime List.
+**Platforms:** Android (primary), Windows (secondary).
+**Language:** Dart / Flutter, Material 3 design system, portrait-only orientation enforced.
+**Architecture:** MVVM + Riverpod 3 (`flutter_riverpod ^3.2.1`).
 
 ---
 
-## 3. 目錄結構
+## 2. Tech Stack & Key Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `flutter_riverpod ^3.2.1` | State management (AsyncNotifier / Provider) |
+| `go_router ^17.1.0` | Declarative routing |
+| `flex_color_scheme ^8.4.0` | Material 3 theming (aquaBlue scheme) |
+| `dio ^5.9.1` | HTTP client |
+| `sqflite ^2.4.2` | Local SQLite favorites database (v2 schema) |
+| `youtube_player_flutter ^9.1.3` | PV playback (requires `YoutubePlayerBuilder` wrapping Scaffold) |
+| `cached_network_image ^3.4.1` | Cover image caching |
+| `feedback ^3.2.0` | Screenshot feedback (ZhTwFeedbackLocalizations) |
+| `connectivity_plus ^7.0.0` | Network status (returns `List<ConnectivityResult>`) |
+| `share_plus ^13.0.0` | Share anime info (ShareParams API) |
+| `easy_image_viewer ^1.5.1` | Fullscreen cover image viewer |
+| `url_launcher ^6.3.2` | Open official site / MAL links |
+| `permission_handler ^12.0.1` | Android storage permissions |
+| `image_gallery_saver_plus ^4.0.1` | Save cover image to gallery |
+
+---
+
+## 3. Directory Structure
 
 ```
 lib/
-├── constants.dart          全域常數（API URL、路由名稱、字串常數）
-├── main.dart               App 入口、ProviderScope、navigatorKey 宣告
-├── generated/assets.dart   自動生成的資源路徑（勿手動修改）
-├── l10n/                   意見回饋本地化（ZhTwFeedbackLocalizations）
+├── constants.dart          Global constants (API URL, route names, string constants)
+├── main.dart               App entry point, ProviderScope, navigatorKey declaration
+├── generated/assets.dart   Auto-generated asset paths (do not edit manually)
+├── l10n/                   Feedback localization (ZhTwFeedbackLocalizations)
 ├── models/
-│   ├── anime_item.dart     動漫資料模型（含 fromJson / fromMap / copyWith / == / hashCode）
-│   └── hitokoto.dart       一言資料模型
-├── providers/              Riverpod 狀態管理層
-│   ├── anime_database_provider.dart   SQLite service provider（keepAlive: true）
-│   ├── anime_list_provider.dart       依年月取得動漫列表
+│   ├── anime_item.dart     Anime data model (fromJson / fromMap / copyWith / == / hashCode)
+│   └── hitokoto.dart       Hitokoto quote data model
+├── providers/              Riverpod state management layer
+│   ├── anime_database_provider.dart   SQLite service provider (keepAlive: true)
+│   ├── anime_list_provider.dart       Fetch anime list by year/month
 │   ├── api_provider.dart              DioClient / ApiService providers
-│   ├── connectivity_provider.dart     網路狀態 Stream provider
-│   ├── favorite_provider.dart         收藏列表 + favoritedNamesProvider（防 N+1）
-│   ├── hitokoto_provider.dart         一言 API
+│   ├── connectivity_provider.dart     Network status Stream provider
+│   ├── favorite_provider.dart         Favorites list + favoritedNamesProvider (N+1 prevention)
+│   ├── hitokoto_provider.dart         Hitokoto quote API
 │   ├── router_provider.dart           GoRouter instance
-│   ├── theme_provider.dart            深色/淺色模式切換
-│   └── year_month_provider.dart       目前選取的年.月字串
+│   ├── theme_provider.dart            Dark/light mode toggle
+│   └── year_month_provider.dart       Currently selected year.month string
 ├── services/
-│   ├── anime_database_service.dart    SQLite CRUD（v2 schema）
-│   ├── api_service.dart               遠端 API fetch（Hitokoto / AnimeItem）
-│   ├── dio_client.dart                Dio 實例建立（timeout = 10s）
-│   ├── preferences_service.dart       SharedPreferences 封裝
-│   └── update_checker.dart            GitHub Releases 更新檢查
+│   ├── anime_database_service.dart    SQLite CRUD (v2 schema)
+│   ├── api_service.dart               Remote API fetch (Hitokoto / AnimeItem)
+│   ├── dio_client.dart                Dio instance setup (timeout = 10s)
+│   ├── preferences_service.dart       SharedPreferences wrapper
+│   └── update_checker.dart            GitHub Releases update check
 ├── screens/
 │   ├── anime/
-│   │   ├── anime_detail_screen.dart   動漫詳情（完整頁面，含 YT PV + 封面圖 + Chip）
-│   │   ├── anime_list_screen.dart     季番列表（依星期分 Tab）
-│   │   └── anime_main_screen.dart     首頁（年份選擇 + 一言）
+│   │   ├── anime_detail_screen.dart   Anime detail (full-page, with YT PV + cover + Chips)
+│   │   ├── anime_list_screen.dart     Seasonal anime list (tabbed by weekday)
+│   │   └── anime_main_screen.dart     Home screen (year selector + quote)
 │   ├── favorite/
-│   │   └── favorite_main_screen.dart  收藏列表（搜尋 + SQLite）
+│   │   └── favorite_main_screen.dart  Favorites list (search + SQLite)
 │   ├── setting/
-│   │   └── setting_main_screen.dart   設定（深色模式、App 版本、意見回饋）
-│   ├── error_screen.dart              GoRouter errorBuilder 錯誤頁
-│   └── no_network_screen.dart         無網路提示頁
+│   │   └── setting_main_screen.dart   Settings (dark mode, app version, feedback)
+│   ├── error_screen.dart              GoRouter errorBuilder page
+│   └── no_network_screen.dart         No-network fallback page
 ├── utils/
-│   ├── date_helper.dart               日期解析/排序/過濾工具（核心業務邏輯）
-│   ├── image_save_utils.dart          封面圖儲存 / 分享工具（handleImageLongPress）
-│   └── logger.dart                    全域 appLogger（Logger package）
+│   ├── date_helper.dart               Date parsing/sorting/filtering utilities (core business logic)
+│   ├── image_save_utils.dart          Cover image save/share utilities (handleImageLongPress)
+│   └── logger.dart                    Global appLogger (Logger package)
 └── widgets/
     ├── anime/
-    │   ├── anime_bottom_bar.dart      底部季番月份導覽（NavigationBar，僅顯示 01/04/07/10）
-    │   ├── anime_card.dart            動漫卡片（點擊進入詳情）
-    │   ├── anime_list.dart            ListView 包裝
-    │   ├── anime_sentence.dart        一言文字 Widget（Timer 輪播）
-    │   └── year_list_card.dart        年份選擇卡片
+    │   ├── anime_bottom_bar.dart      Bottom seasonal month navigation (NavigationBar, 01/04/07/10 only)
+    │   ├── anime_card.dart            Anime card (tap to open detail)
+    │   ├── anime_list.dart            ListView wrapper
+    │   ├── anime_sentence.dart        Hitokoto quote widget (Timer-based rotation)
+    │   └── year_list_card.dart        Year selection card
     ├── favorite/
-    │   └── refresh_btn.dart           收藏頁重新載入 FAB
-    ├── app_loading_indicator.dart     載入動畫（flutter_spinkit）
-    ├── connectivity_watcher.dart      網路斷線監聽（全域 navigatorKey）
-    ├── my_drawer.dart                 側邊選單
-    ├── my_scaffold_wrapper.dart       統一 Scaffold（AppBar + Drawer + 底部列）
-    └── toast_utils.dart               Toast 工具（fluttertoast）
+    │   └── refresh_btn.dart           Favorites page reload FAB
+    ├── app_loading_indicator.dart     Loading animation (flutter_spinkit)
+    ├── connectivity_watcher.dart      Network disconnect listener (global navigatorKey)
+    ├── my_drawer.dart                 Side drawer menu
+    ├── my_scaffold_wrapper.dart       Unified Scaffold (AppBar + Drawer + bottom bar)
+    └── toast_utils.dart               Toast utility (fluttertoast)
 ```
 
 ---
 
-## 4. 架構慣例
+## 4. Architecture Conventions
 
-### 4.1 依賴方向（嚴格遵守）
+### 4.1 Dependency Direction (Strict)
 
 ```
-Models（leaf，不依賴任何 app 內部模組）
+Models (leaf — no internal app dependencies)
   ↑
-Utils（依賴 Models）
+Utils (depends on Models)
   ↑
-Services（依賴 Models）
+Services (depends on Models)
   ↑
-Providers（依賴 Services + Models + Utils）
+Providers (depends on Services + Models + Utils)
   ↑
-Screens / Widgets（依賴 Providers + Models）
+Screens / Widgets (depends on Providers + Models)
 ```
 
-**不允許：** Service 依賴 Provider；Widget 直接呼叫 Service；Model 依賴 Provider。
+**Forbidden:** Service depending on Provider; Widget calling Service directly; Model depending on Provider.
 
-### 4.2 Riverpod 使用規則
+### 4.2 Riverpod Usage Rules
 
-- **AsyncNotifier** 用於有副作用的非同步狀態（收藏列表、動漫列表）
-- **FutureProvider** 用於唯讀非同步資料（一言、更新檢查）
-- **Provider** 用於衍生同步狀態（`favoritedNamesProvider`、`routerProvider`）
-- `ref.invalidate(favoriteProvider)` 用於觸發收藏重新載入；勿直接操作 state
-- `animeDatabaseServiceProvider` 標記 `keepAlive: true`，全程保持 SQLite 連線
+- **AsyncNotifier** — for async state with side effects (favorites list, anime list)
+- **FutureProvider** — for read-only async data (hitokoto, update check)
+- **Provider** — for derived synchronous state (`favoritedNamesProvider`, `routerProvider`)
+- Use `ref.invalidate(favoriteProvider)` to trigger favorites reload; do not mutate state directly
+- `animeDatabaseServiceProvider` is marked `keepAlive: true` to maintain the SQLite connection throughout the app lifecycle
 
-### 4.3 SQLite Schema（v2）
+### 4.3 SQLite Schema (v2)
 
-表格：`anime_items`，欄位：`name（PK）, date, time, carrier, season, originalName, img, description, official, pv（nullable）`。
-新增欄位時必須同時更新 `_onCreate`（新安裝）與 `_onUpgrade`（升版遷移），並遞增 `_dbVersion`。
+Table: `anime_items`, columns: `name (PK), date, time, carrier, season, originalName, img, description, official, pv (nullable)`.
+When adding a new column, always update both `_onCreate` (fresh installs) and `_onUpgrade` (migration), and increment `_dbVersion`.
 
-### 4.4 Material 3 主題規範
+### 4.4 Material 3 Theming Rules
 
-- **禁止** 使用 `Colors.red`、`Colors.grey` 等硬編碼顏色
-- 一律使用 `colorScheme.*`（如 `colorScheme.error`、`colorScheme.primary`）
-- 字體大小一律使用 `textTheme.*`（如 `textTheme.labelSmall`）
+- **Forbidden:** hardcoded colors such as `Colors.red`, `Colors.grey`
+- Always use `colorScheme.*` (e.g., `colorScheme.error`, `colorScheme.primary`)
+- Always use `textTheme.*` for font sizes (e.g., `textTheme.labelSmall`)
 
-### 4.5 網路狀態處理
+### 4.5 Network Status Handling
 
-`connectivity_plus 7.x` 的 `checkConnectivity()` 回傳 **`List<ConnectivityResult>`**（非單一值）。
-判斷無網路必須用：
+`connectivity_plus 7.x` `checkConnectivity()` returns **`List<ConnectivityResult>`** (not a single value).
+To detect no network, use:
 
 ```dart
 final hasNoNetwork = result.every((r) => r == ConnectivityResult.none);
@@ -156,83 +156,83 @@ final hasNoNetwork = result.every((r) => r == ConnectivityResult.none);
 
 ---
 
-## 5. 重要設計決策（禁止更動）
+## 5. Critical Design Decisions (Do Not Change)
 
-### 5.1 雙層網路檢查機制
+### 5.1 Dual-Layer Network Check
 
-`router_provider.dart` 的 `redirect`（啟動時執行一次）與 `connectivity_watcher.dart`（運行時 Stream 監聽）**刻意並存**。兩套機制各司其職，不可刪除任何一套。
+The `redirect` in `router_provider.dart` (runs once at startup) and `connectivity_watcher.dart` (runtime Stream listener) **intentionally coexist**. Each serves a distinct role — do not remove either.
 
-### 5.2 YoutubePlayerBuilder 必須包住 Scaffold
+### 5.2 YoutubePlayerBuilder Must Wrap Scaffold
 
-`anime_detail_screen.dart` 中有 PV 時，`YoutubePlayerBuilder` 必須是最外層，包住整個 `Scaffold`。這是 `youtube_player_flutter` 全螢幕切換的技術需求，不可改為在 Scaffold body 內建立 player。
+In `anime_detail_screen.dart`, when a PV is present, `YoutubePlayerBuilder` must be the outermost widget wrapping the entire `Scaffold`. This is a technical requirement of `youtube_player_flutter` for fullscreen toggle — do not move the player inside the Scaffold body.
 
-### 5.3 navigatorKey 全域宣告
+### 5.3 navigatorKey Declared in main.dart
 
-`navigatorKey` 宣告於 `main.dart`，同時被 `router_provider.dart`（GoRouter）和 `connectivity_watcher.dart`（Dialog 跳轉）使用。不可移動至其他檔案，除非兩處 import 同步更新。
+`navigatorKey` is declared in `main.dart` and shared by both `router_provider.dart` (GoRouter) and `connectivity_watcher.dart` (dialog navigation). Do not move it to another file unless both import sites are updated simultaneously.
 
-### 5.4 favoritedNamesProvider 防 N+1
+### 5.4 favoritedNamesProvider Prevents N+1
 
-`favoritedNamesProvider` 將收藏名稱快取為 `Set<String>`，供所有 `AnimeCard` 共用，避免每張卡片發出獨立 DB 查詢。禁止在 Widget 層直接查詢 DB 確認收藏狀態。
+`favoritedNamesProvider` caches favorited names as a `Set<String>`, shared across all `AnimeCard` instances to avoid per-card DB queries. Do not query the DB directly in Widget/Screen layer to check favorite status.
 
-### 5.5 AnimeBottomBar 只顯示季番月份
+### 5.5 AnimeBottomBar Shows Seasonal Months Only
 
-底部導覽列固定顯示 01、04、07、10 月，這是設計決策（非 Bug）。若要支援特別篇月份需另行評估。
-
----
-
-## 6. 常見任務操作指南
-
-### 新增動漫資料欄位
-
-1. `models/anime_item.dart`：新增欄位、更新 `fromJson`、`fromMap`、`toJson`、`toMap`、`copyWith`、`==`、`hashCode`
-2. `services/anime_database_service.dart`：新增欄位常數、更新 `_onCreate`、新增 `_onUpgrade` case、遞增 `_dbVersion`
-
-### 新增路由頁面
-
-1. `constants.dart`：新增路由路徑常數
-2. `providers/router_provider.dart`：新增 `GoRoute`
-3. 建立對應 Screen Widget
-
-### 修改主題色彩
-
-只修改 `main.dart` 中的 `FlexScheme.aquaBlue`，不可在各 Widget 內硬編碼顏色。
-
-### 更新 PV 播放邏輯
-
-必須在 `anime_detail_screen.dart` 的 `_AnimeDetailScreenState` 內操作，並注意：
-- `YoutubePlayerController` 在 `initState` 建立，在 `dispose` 釋放
-- `_restoreSystemUI()` 需在 `dispose`、`onExitFullScreen`、返回鍵、`AppLifecycleState.resumed` 四處呼叫
-
-### 新增 SQLite 操作
-
-在 `AnimeDatabaseService` 新增方法，並透過 `animeDatabaseServiceProvider` 注入至 Provider 層，不可在 Widget/Screen 直接 `new AnimeDatabaseService()`。
+The bottom navigation bar is fixed to display months 01, 04, 07, and 10 only. This is a deliberate design decision, not a bug. Supporting non-seasonal months (e.g., specials in month 06) requires a separate design review.
 
 ---
 
-## 7. 已知技術債與開放問題
+## 6. Common Task Workflows
 
-| 優先 | 說明 |
-|------|------|
-| LOW | `update_checker.dart` 含 Play Store TODO 待決策 |
-| LOW | `ConnectivityWatcher` 在快速斷線重連時可能堆疊多個 Dialog |
-| LOW | `AnimeBottomBar` 無法瀏覽非季番月份（如特別篇 06） |
-| LOW | 多處 `CachedNetworkImage` 缺少 `semanticLabel`（無障礙） |
-| LOW | `FavoriteMainScreen` 的搜尋列可提取為獨立 `FavoriteSearchBar` Widget |
-| LOW | `win32 ^6.0.0` / `win32_registry ^3.0.2` major 版本待升級 |
+### Add a New Anime Data Field
+
+1. `models/anime_item.dart` — add field, update `fromJson`, `fromMap`, `toJson`, `toMap`, `copyWith`, `==`, `hashCode`
+2. `services/anime_database_service.dart` — add column constant, update `_onCreate`, add `_onUpgrade` case, increment `_dbVersion`
+
+### Add a New Route / Screen
+
+1. `constants.dart` — add route path constant
+2. `providers/router_provider.dart` — add `GoRoute`
+3. Create the corresponding Screen widget
+
+### Change Theme Color
+
+Modify only `FlexScheme.aquaBlue` in `main.dart`. Never hardcode colors inside individual widgets.
+
+### Update PV Playback Logic
+
+All changes must be made inside `_AnimeDetailScreenState` in `anime_detail_screen.dart`. Key rules:
+- `YoutubePlayerController` is created in `initState` and disposed in `dispose`
+- `_restoreSystemUI()` must be called in four places: `dispose`, `onExitFullScreen`, back button handler, and `AppLifecycleState.resumed`
+
+### Add a New SQLite Operation
+
+Add the method to `AnimeDatabaseService`, then inject it via `animeDatabaseServiceProvider` into the Provider layer. Never instantiate `AnimeDatabaseService()` directly in Widget or Screen code.
 
 ---
 
-## 8. 測試現況
+## 7. Known Technical Debt & Open Issues
 
-目前測試覆蓋率極低（< 5%），僅有 `test/widget_test.dart` 的基本煙霧測試。
+| Priority | Description |
+|----------|-------------|
+| LOW | `update_checker.dart` contains a Play Store TODO pending a decision |
+| LOW | `ConnectivityWatcher` may stack multiple dialogs on rapid disconnect/reconnect cycles |
+| LOW | `AnimeBottomBar` cannot navigate to non-seasonal months (e.g., specials in month 06) |
+| LOW | Multiple `CachedNetworkImage` usages are missing `semanticLabel` (accessibility) |
+| LOW | Search bar in `FavoriteMainScreen` could be extracted into a standalone `FavoriteSearchBar` widget |
+| LOW | `win32 ^6.0.0` / `win32_registry ^3.0.2` major version upgrades pending |
 
-**優先補測試的目標：**
+---
 
-1. `utils/date_helper.dart`：`parseAnimeDate`、`filterByWeekday`、`filterOther`、`compareAnimeByDateTime`
-2. `services/anime_database_service.dart`：CRUD 操作、LIKE 搜尋、升版遷移
-3. `providers/favorite_provider.dart`：loading / data / error 狀態
+## 8. Test Coverage Status
 
-執行測試：
+Current test coverage is very low (< 5%). Only a basic smoke test exists in `test/widget_test.dart`.
+
+**Priority test targets:**
+
+1. `utils/date_helper.dart` — `parseAnimeDate`, `filterByWeekday`, `filterOther`, `compareAnimeByDateTime`
+2. `services/anime_database_service.dart` — CRUD operations, LIKE search, schema migration
+3. `providers/favorite_provider.dart` — loading / data / error states
+
+Run tests:
 ```bash
 flutter test
 ```
