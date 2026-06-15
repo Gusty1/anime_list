@@ -383,5 +383,7 @@ hs_err_pid*
 
 .claude/
 
+android/.kotlin/
+
 # Flutter DevTools user configuration
 devtools_options.yaml
