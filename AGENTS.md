@@ -1,7 +1,7 @@
 # AGENTS.md — Anime List Flutter App
 
 > Operational guide for AI agents. Describes the project architecture, conventions, forbidden operations, and correct workflows for common tasks.
-> Written 2026-04-28, based on version 1.3.1+15.
+> Written 2026-04-28, last updated 2026-06-16, based on version 1.3.3+18.
 
 ---
 
@@ -44,7 +44,8 @@
 | `easy_image_viewer ^1.5.1` | Fullscreen cover image viewer |
 | `url_launcher ^6.3.2` | Open official site / MAL links |
 | `permission_handler ^12.0.1` | Android storage permissions |
-| `image_gallery_saver_plus ^4.0.1` | Save cover image to gallery |
+| `flutter_email_sender ^10.0.1` | Send feedback email |
+| `image_gallery_saver_plus ^5.0.0` | Save cover image to gallery |
 
 ---
 
