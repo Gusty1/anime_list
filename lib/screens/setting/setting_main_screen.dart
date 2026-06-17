@@ -5,11 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/gestures.dart';
 import 'package:anime_list/constants.dart';
 import 'package:anime_list/providers/anime_database_provider.dart';
-import 'package:anime_list/providers/api_provider.dart';
 import 'package:anime_list/providers/favorite_provider.dart';
 import 'package:anime_list/providers/theme_provider.dart';
-import 'package:anime_list/services/update_checker.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
+import 'package:in_app_update_flutter/in_app_update_flutter.dart';
 
 /// 設定頁面
 ///
@@ -52,34 +51,70 @@ class _SettingMainScreenState extends ConsumerState<SettingMainScreen> {
     }
   }
 
-  /// 手動檢查更新
+  /// 手動檢查更新（Google Play Flexible 模式）
   Future<void> _checkUpdate() async {
     if (_isCheckingUpdate || !mounted) return;
 
-    setState(() {
-      _isCheckingUpdate = true;
-    });
+    setState(() => _isCheckingUpdate = true);
 
     try {
-      final dio = ref.read(dioClientProvider).dio;
-      final updateInfo = await UpdateChecker.checkForUpdate(dio: dio);
-
+      final updater = InAppUpdateFlutter();
+      final updateInfo = await updater.checkUpdateAndroid();
       if (!mounted) return;
 
-      if (updateInfo == null) {
-        ToastUtils.showShortToast(context, '檢查更新失敗，請稍後再試');
-      } else if (updateInfo.hasUpdate) {
-        UpdateChecker.showUpdateDialog(context, updateInfo);
+      if (updateInfo.updateAvailability == UpdateAvailabilityAndroid.updateAvailable) {
+        await updater.startFlexibleUpdateAndroid();
+        // 等待下載完成後提示安裝
+        if (mounted) await _waitForDownloadAndPrompt(updater);
       } else {
         ToastUtils.showShortToast(context, '已是最新版本 ✓');
       }
+    } catch (_) {
+      // 非 Google Play 環境（模擬器、開發機）或網路問題，靜默忽略
     } finally {
-      if (mounted) {
-        setState(() {
-          _isCheckingUpdate = false;
-        });
+      if (mounted) setState(() => _isCheckingUpdate = false);
+    }
+  }
+
+  /// 監聽 Flexible Update 下載狀態，下載完成後提示使用者重啟安裝
+  Future<void> _waitForDownloadAndPrompt(InAppUpdateFlutter updater) async {
+    await for (final state in updater.installStateStreamAndroid) {
+      if (!mounted) return;
+      if (state.status == InstallStatusAndroid.downloaded) {
+        _showInstallPrompt(updater);
+        return;
+      }
+      if (state.status == InstallStatusAndroid.failed ||
+          state.status == InstallStatusAndroid.canceled) {
+        return;
       }
     }
+  }
+
+  /// 顯示「更新已下載，立即重啟安裝」的提示 Dialog
+  void _showInstallPrompt(InAppUpdateFlutter updater) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('更新已下載完成'),
+        content: const Text('重啟 App 即可完成安裝，現在重啟嗎？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('稍後'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await updater.completeUpdateAndroid();
+            },
+            child: const Text('立即重啟'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 顯示清除資料確認對話框
