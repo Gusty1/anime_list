@@ -7,19 +7,18 @@ import 'dart:typed_data';
 import 'package:anime_list/utils/logger.dart';
 import 'package:anime_list/widgets/toast_utils.dart';
 
-/// 請求儲存圖片的權限（依 Android 版本使用不同的權限）
+/// 請求儲存圖片的權限
+/// Android 10+ (API 29+) 使用 MediaStore API，儲存到相簿不需要任何權限
+/// Android 9 以下才需要 WRITE_EXTERNAL_STORAGE 權限
 Future<bool> requestSavePermission() async {
   final androidInfo = await DeviceInfoPlugin().androidInfo;
   final sdkInt = androidInfo.version.sdkInt;
 
-  if (sdkInt >= 33) {
-    // Android 13+ 使用 READ_MEDIA_IMAGES
-    final status = await Permission.photos.request();
-    if (status.isGranted) return true;
-    if (status.isPermanentlyDenied) openAppSettings();
-    return false;
+  if (sdkInt >= 29) {
+    // Android 10+ 不需要權限即可儲存到相簿
+    return true;
   } else {
-    // Android 12 以下使用 STORAGE
+    // Android 9 以下需要 WRITE_EXTERNAL_STORAGE
     final status = await Permission.storage.request();
     if (status.isGranted) return true;
     if (status.isPermanentlyDenied) openAppSettings();

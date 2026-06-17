@@ -30,6 +30,13 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Android 15+ edge-to-edge 相容：讓系統列透明，由 Flutter 自行處理 insets
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+  ));
+
   // 初始化 SharedPreferences
   final prefsService = PreferencesService();
   await prefsService.init();
