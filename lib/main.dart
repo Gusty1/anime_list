@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:anime_list/services/preferences_service.dart';
-import 'package:anime_list/services/update_checker.dart';
 import 'package:anime_list/providers/theme_provider.dart';
 import 'package:anime_list/providers/router_provider.dart';
-import 'package:anime_list/providers/api_provider.dart';
+import 'package:in_app_update_flutter/in_app_update_flutter.dart';
 import 'package:anime_list/widgets/connectivity_watcher.dart';
 import 'package:feedback/feedback.dart';
 import 'package:flutter/services.dart';
@@ -71,16 +70,65 @@ class _MyAppState extends ConsumerState<MyApp> {
     Future.delayed(const Duration(seconds: 2), _checkUpdateOnStartup);
   }
 
-  /// 啟動時自動檢查更新
+  /// 啟動時自動檢查更新（Google Play Flexible 模式）
   Future<void> _checkUpdateOnStartup() async {
-    final dio = ref.read(dioClientProvider).dio;
-    final updateInfo = await UpdateChecker.checkForUpdate(dio: dio);
-    if (updateInfo != null && updateInfo.hasUpdate) {
-      final ctx = navigatorKey.currentContext;
-      if (ctx != null && ctx.mounted) {
-        UpdateChecker.showUpdateDialog(ctx, updateInfo);
+    try {
+      final updater = InAppUpdateFlutter();
+      final updateInfo = await updater.checkUpdateAndroid();
+      if (updateInfo.updateAvailability ==
+          UpdateAvailabilityAndroid.updateAvailable) {
+        await updater.startFlexibleUpdateAndroid();
+        // 背景等待下載，完成後透過 GlobalKey 顯示安裝提示
+        _waitForDownloadAndPromptGlobal(updater);
       }
+    } catch (_) {
+      // 非 Google Play 環境（模擬器、開發機直跑）忽略錯誤
     }
+  }
+
+  /// 監聽背景下載狀態，下載完成後透過 navigatorKey 顯示安裝提示 Dialog
+  Future<void> _waitForDownloadAndPromptGlobal(InAppUpdateFlutter updater) async {
+    try {
+      await for (final state in updater.installStateStreamAndroid) {
+        if (state.status == InstallStatusAndroid.downloaded) {
+          _showStartupInstallDialog(updater);
+          return;
+        }
+        if (state.status == InstallStatusAndroid.failed ||
+            state.status == InstallStatusAndroid.canceled) {
+          return;
+        }
+      }
+    } catch (_) {
+      // 非 Google Play 環境忽略
+    }
+  }
+
+  /// 透過 GlobalKey 在任意時機顯示安裝提示
+  void _showStartupInstallDialog(InAppUpdateFlutter updater) {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('更新已下載完成'),
+        content: const Text('重啟 App 即可完成安裝，現在重啟嗎？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('稍後'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await updater.completeUpdateAndroid();
+            },
+            child: const Text('立即重啟'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
