@@ -2,7 +2,7 @@ name: anime_list
 description: 'Show Anime List'
 publish_to: 'none'
 
-version: 1.3.4+19
+version: 1.3.5+20
 
 environment:
   sdk: ^3.7.0
